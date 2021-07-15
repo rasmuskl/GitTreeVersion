@@ -1,4 +1,4 @@
-﻿namespace GitTreeVersion
+﻿namespace GitTreeVersion.Context
 {
     public class RepositoryContext
     {

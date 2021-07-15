@@ -2,13 +2,13 @@
 using System.IO;
 using System.Text.Json;
 
-namespace GitTreeVersion
+namespace GitTreeVersion.Context
 {
-    public class VersionConfigManager
+    public class ContextResolver
     {
         public const string VersionConfigFileName = "version.json";
 
-        public RepositoryContext FindConfig(string workingDirectory)
+        public static RepositoryContext GetRepositoryContext(string workingDirectory)
         {
             var repositoryRoot = FindDirectoryAbove(workingDirectory, ".git");
 
@@ -30,7 +30,7 @@ namespace GitTreeVersion
             return new RepositoryContext(repositoryRoot, versionRootPath!, versionConfig!);
         }
 
-        private string? FindFileAbove(string directory, string fileName)
+        private static string? FindFileAbove(string directory, string fileName)
         {
             var filePath = Path.Combine(directory, fileName);
             
@@ -49,13 +49,13 @@ namespace GitTreeVersion
             return FindFileAbove(parentDirectory, fileName);
         }
         
-        private string? FindDirectoryAbove(string directory, string directoryName)
+        private static string? FindDirectoryAbove(string directory, string directoryName)
         {
             var directoryPath = Path.Combine(directory, directoryName);
             
             if (Directory.Exists(directoryPath))
             {
-                return directoryPath;
+                return directory;
             }
             
             var parentDirectory = Path.GetDirectoryName(directory);

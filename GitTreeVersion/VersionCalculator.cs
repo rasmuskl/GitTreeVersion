@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Linq;
+using GitTreeVersion.Context;
 
 namespace GitTreeVersion
 {
     public class VersionCalculator
     {
-        public Version GetVersion(string workingDirectory)
+        public Version GetVersion(RepositoryContext context)
         {
             string? range = null;
-            var merges = Git.GitMerges(workingDirectory, range, ".");
+            var merges = Git.GitMerges(context.VersionRootPath, range, ".");
 
-            var versionConfigInstance = new VersionConfigManager().FindConfig(workingDirectory);
             
             // Console.WriteLine($"Merges: {merges.Length}");
             //
@@ -23,13 +23,13 @@ namespace GitTreeVersion
                 sinceMergeRange = $"{merges.First()}..";
             }
 
-            var nonMerges = Git.GitNonMerges(workingDirectory, sinceMergeRange, ".");
+            var nonMerges = Git.GitNonMerges(context.VersionRootPath, sinceMergeRange, ".");
 
             // Console.WriteLine($"Non-merges: {nonMerges.Length}");
             //
             // Console.WriteLine($"Version: 0.{merges.Length}.{nonMerges.Length}");
 
-            return new Version(int.Parse(versionConfigInstance.VersionConfig.Major ?? "0"), merges.Length, nonMerges.Length);
+            return new Version(int.Parse(context.VersionConfig.Major ?? "0"), merges.Length, nonMerges.Length);
         }
     }
 }

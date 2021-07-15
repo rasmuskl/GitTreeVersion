@@ -4,6 +4,7 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using GitTreeVersion.Context;
 
 namespace GitTreeVersion
 {
@@ -27,9 +28,11 @@ namespace GitTreeVersion
 
         private static void DoVersion(bool directoryBuildProps)
         {
-            var workingDirectory = Environment.CurrentDirectory;
-
             var stopwatch = Stopwatch.StartNew();
+            var repositoryContext = ContextResolver.GetRepositoryContext(Environment.CurrentDirectory);
+            
+            Console.WriteLine($"Repository root: {repositoryContext.RepositoryRootPath}");
+            Console.WriteLine($"Version root: {repositoryContext.VersionRootPath}");
 
             // GitFindFiles(workingDirectory, ":(top,glob)**/*.csproj");
             // var file = @"Source/PoeNinja/PoeNinja.csproj";
@@ -37,7 +40,7 @@ namespace GitTreeVersion
             // Console.WriteLine($"Last commit hash: {string.Join(Environment.NewLine, lastCommitHashes)}");
             // var range = $"{lastCommitHashes.Last()}..";
 
-            var version = new VersionCalculator().GetVersion(workingDirectory);
+            var version = new VersionCalculator().GetVersion(repositoryContext);
 
             if (directoryBuildProps)
             {

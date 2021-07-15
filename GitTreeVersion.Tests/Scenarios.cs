@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using FluentAssertions;
-using Newtonsoft.Json;
+using GitTreeVersion.Context;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -15,9 +15,12 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateEmptyDirectory();
 
-            var version = new VersionCalculator().GetVersion(repositoryPath);
+            Action action = () =>
+            {
+                new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
+            };
 
-            version.Should().Be(new Version(0, 0, 0));
+            action.Should().Throw<InvalidOperationException>();
         }
 
         [Fact]
@@ -25,7 +28,7 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateGitRepository();
 
-            var version = new VersionCalculator().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             version.Should().Be(new Version(0, 0, 0));
         }
@@ -37,7 +40,7 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath);
 
-            var version = new VersionCalculator().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             version.Should().Be(new Version(0, 0, 1));
         }
@@ -50,7 +53,7 @@ namespace GitTreeVersion.Tests
             CommitNewFile(repositoryPath);
             CommitNewFile(repositoryPath);
 
-            var version = new VersionCalculator().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             version.Should().Be(new Version(0, 0, 2));
         }
@@ -68,7 +71,7 @@ namespace GitTreeVersion.Tests
 
             MergeBranchToMaster(repositoryPath, branchName);
 
-            var version = new VersionCalculator().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             version.Should().Be(new Version(0, 1, 0));
         }
@@ -86,7 +89,7 @@ namespace GitTreeVersion.Tests
 
             MergeBranchToMaster(repositoryPath, branchName, true);
             
-            var version = new VersionCalculator().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             version.Should().Be(new Version(0, 0, 2));
         }
@@ -98,14 +101,14 @@ namespace GitTreeVersion.Tests
 
             CommitVersionConfig(repositoryPath, new VersionConfig { Major = "1" });
 
-            var version = new VersionCalculator().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             version.Should().Be(new Version(1, 0, 1));
         }
 
         private void CommitVersionConfig(string repositoryPath, VersionConfig versionConfig)
         {
-            File.WriteAllText(Path.Combine(repositoryPath, VersionConfigManager.VersionConfigFileName), JsonSerializer.Serialize(versionConfig, new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(Path.Combine(repositoryPath, ContextResolver.VersionConfigFileName), JsonSerializer.Serialize(versionConfig, new JsonSerializerOptions { WriteIndented = true }));
             Git.RunGit(repositoryPath, "add", "--all");
             Git.RunGit(repositoryPath, "commit", "--all", "--message", Guid.NewGuid().ToString());
         }
