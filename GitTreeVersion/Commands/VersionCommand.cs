@@ -12,6 +12,8 @@ namespace GitTreeVersion.Commands
         public VersionCommand() : base("version", "Versions the thing")
         {
             Handler = CommandHandler.Create<bool, bool>(Execute);
+            
+            AddOption(new Option<bool>("--directory-build-props"));
         }
 
         private void Execute(bool directoryBuildProps, bool debug)
