@@ -40,3 +40,8 @@ jobs:
 
     - name: Pack
       run: dotnet pack --configuration Release
+
+    - name: NuGet push
+      env:
+        APIKEY: ${{ secrets.GitTreeVersionNuGetKey }}
+      run: dotnet nuget push GitTreeVersion/bin/Release/GitTreeVersion.*.nupkg --api-key $APIKEY
