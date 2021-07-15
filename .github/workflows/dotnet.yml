@@ -44,4 +44,4 @@ jobs:
     - name: NuGet push
       env:
         APIKEY: ${{ secrets.GitTreeVersionNuGetKey }}
-      run: dotnet nuget push GitTreeVersion/bin/Release/GitTreeVersion.*.nupkg --api-key $APIKEY
+      run: dotnet nuget push GitTreeVersion/bin/Release/GitTreeVersion.*.nupkg --api-key $APIKEY --source https://api.nuget.org/v3/index.json
