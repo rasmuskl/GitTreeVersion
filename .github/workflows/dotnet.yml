@@ -25,7 +25,7 @@ jobs:
       run: dotnet restore
 
     - name: Version
-      run: dotnet run --project GitTreeVersion -- directory-props
+      run: dotnet run --project GitTreeVersion -- version --directory-build-props
 
     - name: Build
       run: dotnet build --no-restore

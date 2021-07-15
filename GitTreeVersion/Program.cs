@@ -2,7 +2,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -13,38 +12,20 @@ namespace GitTreeVersion
         public static async Task Main(string[] args)
         {
             var rootCommand = new RootCommand();
-            
-            rootCommand.AddCommand(new Command("version")
-            {
-                Handler = CommandHandler.Create(DoVersion)
-            });
 
-            rootCommand.AddCommand(new Command("directory-props")
+            var versionCommand = new Command("version")
             {
-                Handler = CommandHandler.Create(DoDirectoryProps)
-            });
+                Handler = CommandHandler.Create<bool>(DoVersion),
+            };
+
+            versionCommand.AddOption(new Option<bool>("--directory-build-props"));
             
+            rootCommand.AddCommand(versionCommand);
+
             await rootCommand.InvokeAsync(args);
         }
 
-        private static void DoDirectoryProps()
-        {
-            var workingDirectory = Environment.CurrentDirectory;
-
-            var version = new VersionCalculator().GetVersion(workingDirectory);
-
-            var xDocument = new XDocument(
-                new XElement("Project",
-                    new XElement("PropertyGroup", 
-                        new XElement("Version", version.ToString()))));
-            
-            
-            xDocument.Save("Directory.Build.props");
-            
-            Console.WriteLine($"Wrote version {version} to Directory.Build.props");
-        }
-
-        private static void DoVersion()
+        private static void DoVersion(bool directoryBuildProps)
         {
             var workingDirectory = Environment.CurrentDirectory;
 
@@ -57,8 +38,21 @@ namespace GitTreeVersion
             // var range = $"{lastCommitHashes.Last()}..";
 
             var version = new VersionCalculator().GetVersion(workingDirectory);
-            Console.WriteLine($"Version: {version}");
 
+            if (directoryBuildProps)
+            {
+                var xDocument = new XDocument(
+                    new XElement("Project",
+                        new XElement("PropertyGroup",
+                            new XElement("Version", version.ToString()))));
+
+
+                xDocument.Save("Directory.Build.props");
+
+                Console.WriteLine($"Wrote version {version} to Directory.Build.props");
+            }
+            
+            Console.WriteLine($"Version: {version}");
             Console.WriteLine($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
     }
