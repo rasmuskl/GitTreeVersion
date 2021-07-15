@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitTreeVersion", "GitTreeVersion\GitTreeVersion.csproj", "{5DE54BF8-C7F1-4BCB-AD26-8E2D78D8931F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitTreeVersion.Tests", "GitTreeVersion.Tests\GitTreeVersion.Tests.csproj", "{0CF8B6CC-310C-465B-BD77-984FEA48A237}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{5DE54BF8-C7F1-4BCB-AD26-8E2D78D8931F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DE54BF8-C7F1-4BCB-AD26-8E2D78D8931F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DE54BF8-C7F1-4BCB-AD26-8E2D78D8931F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CF8B6CC-310C-465B-BD77-984FEA48A237}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CF8B6CC-310C-465B-BD77-984FEA48A237}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CF8B6CC-310C-465B-BD77-984FEA48A237}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CF8B6CC-310C-465B-BD77-984FEA48A237}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
