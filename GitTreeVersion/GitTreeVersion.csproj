@@ -12,7 +12,6 @@
   
   <PropertyGroup>
     <PackageId>GitTreeVersion</PackageId>
-    <Version>0.1.2</Version>
     <Authors>Rasmus Kromann-Larsen</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

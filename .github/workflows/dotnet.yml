@@ -21,7 +21,10 @@ jobs:
     
     - name: Restore dependencies
       run: dotnet restore
-    
+
+    - name: Version
+      run: dotnet run -- directory-props
+
     - name: Build
       run: dotnet build --no-restore
 
