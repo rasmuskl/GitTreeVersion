@@ -5,8 +5,10 @@ using System.Text;
 
 namespace GitTreeVersion
 {
-    public class Git
+    public static class Git
     {
+        public static bool Debug { get; set; }
+        
         public static string[] GitNonMerges(string workingDirectory, string? range, string? pathSpec)
         {
             var arguments = new List<string>();
@@ -72,7 +74,10 @@ namespace GitTreeVersion
                 startInfo.ArgumentList.Add(argument);
             }
 
-            Console.WriteLine($"git {string.Join(" ", startInfo.ArgumentList)}");
+            if (Debug)
+            {
+                Console.WriteLine($"git {string.Join(" ", startInfo.ArgumentList)}");
+            }
 
             var process = Process.Start(startInfo);
 

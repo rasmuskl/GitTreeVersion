@@ -13,10 +13,12 @@ namespace GitTreeVersion
         public static async Task Main(string[] args)
         {
             var rootCommand = new RootCommand();
+            
+            rootCommand.AddGlobalOption(new Option<bool>("--debug"));
 
             var versionCommand = new Command("version")
             {
-                Handler = CommandHandler.Create<bool>(DoVersion),
+                Handler = CommandHandler.Create<bool, bool>(DoVersion),
             };
 
             versionCommand.AddOption(new Option<bool>("--directory-build-props"));
@@ -26,11 +28,13 @@ namespace GitTreeVersion
             await rootCommand.InvokeAsync(args);
         }
 
-        private static void DoVersion(bool directoryBuildProps)
+        private static void DoVersion(bool directoryBuildProps, bool debug)
         {
+            Git.Debug = debug;
+            
             var stopwatch = Stopwatch.StartNew();
             var repositoryContext = ContextResolver.GetRepositoryContext(Environment.CurrentDirectory);
-            
+
             Console.WriteLine($"Repository root: {repositoryContext.RepositoryRootPath}");
             Console.WriteLine($"Version root: {repositoryContext.VersionRootPath}");
 
@@ -51,12 +55,15 @@ namespace GitTreeVersion
 
 
                 xDocument.Save("Directory.Build.props");
-
                 Console.WriteLine($"Wrote version {version} to Directory.Build.props");
             }
             
             Console.WriteLine($"Version: {version}");
-            Console.WriteLine($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
+
+            if (debug)
+            {
+                Console.WriteLine($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
+            }
         }
     }
 }

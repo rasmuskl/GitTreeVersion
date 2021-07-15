@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace GitTreeVersion.Context
 {
-    public class ContextResolver
+    public static class ContextResolver
     {
         public const string VersionConfigFileName = "version.json";
 
