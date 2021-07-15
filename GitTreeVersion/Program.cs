@@ -1,62 +1,40 @@
 ﻿using System;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Diagnostics;
-using System.Linq;
+using System.Threading.Tasks;
 
 namespace GitTreeVersion
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            // var workingDirectory = @"c:\dev\PoeNinja";
-            var workingDirectory = Environment.CurrentDirectory;
-
-            var stopwatch = Stopwatch.StartNew();
-
-            // GitFindFiles(workingDirectory, ":(top,glob)**/*.csproj");
-
-            // var file = @"Source/PoeNinja/PoeNinja.csproj";
-
-            // var lastCommitHashes = GitLastCommitHashes(workingDirectory, file);
-
-            // Console.WriteLine($"Last commit hash: {string.Join(Environment.NewLine, lastCommitHashes)}");
-
-            // var range = $"{lastCommitHashes.Last()}..";
-
-            var version = new Versioner().GetVersion(workingDirectory);
-            Console.WriteLine($"Version: {version}");
-
-            Console.WriteLine($"Elapsed {stopwatch.ElapsedMilliseconds} ms");
-        }
-    }
-
-    public class Versioner
-    {
-        public Version GetVersion(string workingDirectory)
-        {
-            string? range = null;
-            var merges = Git.GitMerges(workingDirectory, range, ".");
-
-            var versionConfigInstance = new VersionConfigManager().FindConfig(workingDirectory);
+            var rootCommand = new RootCommand();
             
-            // Console.WriteLine($"Merges: {merges.Length}");
-            //
-            // Console.WriteLine($"Last merge: {merges.FirstOrDefault()}");
-
-            string? sinceMergeRange = null;
-
-            if (merges.Any())
+            rootCommand.AddCommand(new Command("version") { Handler = CommandHandler.Create(() =>
             {
-                sinceMergeRange = $"{merges.First()}..";
-            }
+                var workingDirectory = Environment.CurrentDirectory;
 
-            var nonMerges = Git.GitNonMerges(workingDirectory, sinceMergeRange, ".");
+                var stopwatch = Stopwatch.StartNew();
 
-            // Console.WriteLine($"Non-merges: {nonMerges.Length}");
-            //
-            // Console.WriteLine($"Version: 0.{merges.Length}.{nonMerges.Length}");
+                // GitFindFiles(workingDirectory, ":(top,glob)**/*.csproj");
 
-            return new Version(int.Parse(versionConfigInstance.VersionConfig.Major ?? "0"), merges.Length, nonMerges.Length);
+                // var file = @"Source/PoeNinja/PoeNinja.csproj";
+
+                // var lastCommitHashes = GitLastCommitHashes(workingDirectory, file);
+
+                // Console.WriteLine($"Last commit hash: {string.Join(Environment.NewLine, lastCommitHashes)}");
+
+                // var range = $"{lastCommitHashes.Last()}..";
+
+                var version = new VersionCalculator().GetVersion(workingDirectory);
+                Console.WriteLine($"Version: {version}");
+
+                Console.WriteLine($"Elapsed {stopwatch.ElapsedMilliseconds} ms");
+            })});
+
+            await rootCommand.InvokeAsync(args);
         }
     }
 }

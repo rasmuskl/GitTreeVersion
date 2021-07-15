@@ -15,7 +15,7 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateEmptyDirectory();
 
-            var version = new Versioner().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(repositoryPath);
 
             version.Should().Be(new Version(0, 0, 0));
         }
@@ -25,7 +25,7 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateGitRepository();
 
-            var version = new Versioner().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(repositoryPath);
 
             version.Should().Be(new Version(0, 0, 0));
         }
@@ -37,7 +37,7 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath);
 
-            var version = new Versioner().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(repositoryPath);
 
             version.Should().Be(new Version(0, 0, 1));
         }
@@ -50,7 +50,7 @@ namespace GitTreeVersion.Tests
             CommitNewFile(repositoryPath);
             CommitNewFile(repositoryPath);
 
-            var version = new Versioner().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(repositoryPath);
 
             version.Should().Be(new Version(0, 0, 2));
         }
@@ -68,7 +68,7 @@ namespace GitTreeVersion.Tests
 
             MergeBranchToMaster(repositoryPath, branchName);
 
-            var version = new Versioner().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(repositoryPath);
 
             version.Should().Be(new Version(0, 1, 0));
         }
@@ -86,7 +86,7 @@ namespace GitTreeVersion.Tests
 
             MergeBranchToMaster(repositoryPath, branchName, true);
             
-            var version = new Versioner().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(repositoryPath);
 
             version.Should().Be(new Version(0, 0, 2));
         }
@@ -98,7 +98,7 @@ namespace GitTreeVersion.Tests
 
             CommitVersionConfig(repositoryPath, new VersionConfig { Major = "1" });
 
-            var version = new Versioner().GetVersion(repositoryPath);
+            var version = new VersionCalculator().GetVersion(repositoryPath);
 
             version.Should().Be(new Version(1, 0, 1));
         }
