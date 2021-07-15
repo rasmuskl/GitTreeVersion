@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text.Json;
 
 namespace GitTreeVersion
@@ -7,41 +8,64 @@ namespace GitTreeVersion
     {
         public const string VersionConfigFileName = "version.json";
 
-        public VersionConfigInstance FindConfig(string workingDirectory)
+        public RepositoryContext FindConfig(string workingDirectory)
         {
-            var fileName = Path.Combine(workingDirectory, VersionConfigFileName);
+            var repositoryRoot = FindDirectoryAbove(workingDirectory, ".git");
 
-            if (!File.Exists(fileName))
+            if (repositoryRoot is null)
             {
-                if (Directory.Exists(Path.Combine(workingDirectory, ".git")))
-                {
-                    return new VersionConfigInstance(workingDirectory, VersionConfig.Default);
-                }
-
-                var parentDirectory = Path.GetDirectoryName(workingDirectory);
-
-                if (parentDirectory is null)
-                {
-                    return new VersionConfigInstance(workingDirectory, VersionConfig.Default);
-                }
-
-                return FindConfig(parentDirectory);
+                throw new InvalidOperationException("Not in a git repository");
             }
+            
+            var configFilePath = FindFileAbove(workingDirectory, VersionConfigFileName);
 
-            var content = File.ReadAllText(fileName);
-            return new VersionConfigInstance(workingDirectory, JsonSerializer.Deserialize<VersionConfig>(content)!);
+            if (configFilePath == null)
+            {
+                return new RepositoryContext(repositoryRoot, repositoryRoot, VersionConfig.Default);
+            }
+            
+            var configContent = File.ReadAllText(configFilePath);
+            var versionRootPath = Path.GetDirectoryName(configFilePath);
+            var versionConfig = JsonSerializer.Deserialize<VersionConfig>(configContent);
+            return new RepositoryContext(repositoryRoot, versionRootPath!, versionConfig!);
         }
-    }
 
-    public class VersionConfigInstance
-    {
-        public string Path { get; }
-        public VersionConfig VersionConfig { get; }
-
-        public VersionConfigInstance(string path, VersionConfig versionConfig)
+        private string? FindFileAbove(string directory, string fileName)
         {
-            Path = path;
-            VersionConfig = versionConfig;
+            var filePath = Path.Combine(directory, fileName);
+            
+            if (File.Exists(filePath))
+            {
+                return filePath;
+            }
+            
+            var parentDirectory = Path.GetDirectoryName(directory);
+
+            if (parentDirectory == null)
+            {
+                return null;
+            }
+            
+            return FindFileAbove(parentDirectory, fileName);
+        }
+        
+        private string? FindDirectoryAbove(string directory, string directoryName)
+        {
+            var directoryPath = Path.Combine(directory, directoryName);
+            
+            if (Directory.Exists(directoryPath))
+            {
+                return directoryPath;
+            }
+            
+            var parentDirectory = Path.GetDirectoryName(directory);
+
+            if (parentDirectory == null)
+            {
+                return null;
+            }
+            
+            return FindDirectoryAbove(parentDirectory, directoryName);
         }
     }
 }
