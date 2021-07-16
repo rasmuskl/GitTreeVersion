@@ -105,6 +105,41 @@ namespace GitTreeVersion.Tests
 
             version.Should().Be(new Version(1, 0, 1));
         }
+        
+        [Fact]
+        public void AzureDevOpsDetachedHeadState()
+        {
+            var repositoryPath = CreateGitRepository();
+            
+            CommitNewFile(repositoryPath);
+
+            var branchName = CreateBranch(repositoryPath);
+
+            CommitNewFile(repositoryPath);
+
+            var currentCommit = Git.RunGit(repositoryPath, "rev-parse", branchName).Trim();
+
+            // Source: https://stackoverflow.com/a/42634501
+            Git.RunGit(repositoryPath, "update-ref", "refs/pull/42/pull", currentCommit);
+            Git.RunGit(repositoryPath, "checkout", "master");
+            Git.RunGit(repositoryPath, "merge", "--no-ff", "refs/pull/42/pull");
+            Git.RunGit(repositoryPath, "update-ref", "refs/pull/42/merge", "HEAD");
+            Git.RunGit(repositoryPath, "checkout", "refs/pull/42/merge");
+            
+            // git status at this point gives: 
+            //
+            // (local)
+            // HEAD detached at refs/pull/42/merge
+            // nothing to commit, working tree clean
+            //
+            // (Azure DevOps)
+            // HEAD detached at pull/119/merge
+            // nothing to commit, working tree clean
+            
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
+
+            version.Should().Be(new Version(0, 0, 2));
+        }
 
         private void CommitVersionConfig(string repositoryPath, VersionConfig versionConfig)
         {
