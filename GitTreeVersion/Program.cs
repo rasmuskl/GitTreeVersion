@@ -14,6 +14,7 @@ namespace GitTreeVersion
             rootCommand.AddCommand(new InitCommand());
             rootCommand.AddCommand(new VersionCommand());
             rootCommand.AddCommand(new CheckChangedCommand());
+            rootCommand.AddCommand(new AnalyzeCommand());
 
             await rootCommand.InvokeAsync(args);
         }
