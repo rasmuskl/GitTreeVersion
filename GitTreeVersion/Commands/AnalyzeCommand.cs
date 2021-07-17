@@ -47,6 +47,12 @@ namespace GitTreeVersion.Commands
                 foreach (var element in document.Root?.XPathSelectElements("//ProjectReference") ?? Array.Empty<XElement>())
                 {
                     var attribute = element.Attribute("Include");
+
+                    if (fileInfo.DirectoryName is null || attribute is null)
+                    {
+                        continue;
+                    }
+                    
                     projectQueue.Enqueue(Path.Combine(fileInfo.DirectoryName, attribute.Value));
                 }
             }
