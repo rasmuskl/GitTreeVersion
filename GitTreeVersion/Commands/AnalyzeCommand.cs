@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
-using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
 

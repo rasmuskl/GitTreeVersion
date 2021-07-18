@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Spectre.Console;
 
 namespace GitTreeVersion
 {
@@ -45,7 +46,7 @@ namespace GitTreeVersion
                 }
             }
             
-            Console.WriteLine(node.Name);
+            AnsiConsole.MarkupLine(node.Name);
         }
     }
 

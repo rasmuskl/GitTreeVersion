@@ -5,6 +5,7 @@ using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
+using Spectre.Console;
 
 namespace GitTreeVersion.Commands
 {
@@ -43,7 +44,7 @@ namespace GitTreeVersion.Commands
 
             foreach (var versionRoot in versionRoots)
             {
-                var versionRootNode = new TreeNode($"*{Path.GetFileName(versionRoot)} [{versionCalculator.GetVersion(ContextResolver.GetRepositoryContext(versionRoot))}]");
+                var versionRootNode = new TreeNode($"{Path.GetFileName(versionRoot)} [grey30][[[/][lime]{versionCalculator.GetVersion(ContextResolver.GetRepositoryContext(versionRoot))}[/][grey30]]][/]");
                 versionRootNodes[versionRoot] = versionRootNode;
                 // Console.WriteLine($"Version root: {versionRoot}");
                 
@@ -84,7 +85,7 @@ namespace GitTreeVersion.Commands
                     versionCache.Add(fileContext.VersionRootPath, fileVersion);
                 }
                 
-                versionRootNodes[fileContext.VersionRootPath].AddChild(new TreeNode($"{Path.GetFileName(versionableFile)} [{fileVersion}]"));
+                versionRootNodes[fileContext.VersionRootPath].AddChild(new TreeNode($"{Path.GetFileName(versionableFile)} [grey30][[[/][grey54]{fileVersion}[/][grey30]]][/]"));
             }
             
             new TreeRenderer().WriteTree(versionRootNodes[versionRoots[0]]);
