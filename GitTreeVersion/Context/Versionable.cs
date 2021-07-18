@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GitTreeVersion.Commands
+namespace GitTreeVersion.Context
 {
     public class Versionable
     {

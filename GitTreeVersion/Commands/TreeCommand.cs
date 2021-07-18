@@ -27,13 +27,13 @@ namespace GitTreeVersion.Commands
             var versionCache = new Dictionary<string, Version>();
             versionCache.Add(repositoryContext.VersionRootPath, version);
 
-            var csprojFiles = Git.GitFindFiles(repositoryContext.RepositoryRootPath, ":(glob)**/*.csproj");
-            var packageJsonFiles = Git.GitFindFiles(repositoryContext.RepositoryRootPath, ":(glob)**/package.json");
+            var csprojFiles = Git.GitFindFiles(repositoryContext.VersionRootPath, ":(glob)**/*.csproj");
+            var packageJsonFiles = Git.GitFindFiles(repositoryContext.VersionRootPath, ":(glob)**/package.json");
             var versionableFiles = csprojFiles.Concat(packageJsonFiles);
 
             var versionables = new List<Versionable>();
 
-            foreach (var versionableFile in versionableFiles.Select(f => Path.Combine(repositoryContext.RepositoryRootPath, f)))
+            foreach (var versionableFile in versionableFiles.Select(f => Path.Combine(repositoryContext.VersionRootPath, f)))
             {
                 var directoryPath = Path.GetDirectoryName(versionableFile);
 

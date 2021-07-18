@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace GitTreeVersion.Commands
+namespace GitTreeVersion.Context
 {
     public class VersionRoot
     {
