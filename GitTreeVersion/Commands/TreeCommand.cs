@@ -21,74 +21,71 @@ namespace GitTreeVersion.Commands
             var versionCalculator = new VersionCalculator();
             var repositoryContext = ContextResolver.GetRepositoryContext(Environment.CurrentDirectory);
 
-            var csprojFiles = Git.GitFindFiles(repositoryContext.RepositoryRootPath, ":(glob)**/*.csproj");
-            var packageJsonFiles = Git.GitFindFiles(repositoryContext.RepositoryRootPath, ":(glob)**/package.json");
-            var versionFiles = Git.GitFindFiles(repositoryContext.RepositoryRootPath, ":(glob)**/version.json");
-
-            var versionRoots = new List<string>();
-            versionRoots.Add(repositoryContext.VersionRootPath);
-
-            var versionRootNodes = new Dictionary<string, TreeNode>();
-
-            foreach (var versionFile in versionFiles.OrderBy(v => v.Length))
-            {
-                var versionRootPath = Path.GetDirectoryName(Path.Combine(repositoryContext.RepositoryRootPath, versionFile));
-
-                if (versionRootPath is null)
-                {
-                    continue;
-                }
-                
-                versionRoots.Add(versionRootPath);
-            }
-
-            foreach (var versionRoot in versionRoots)
-            {
-                var versionRootNode = new TreeNode($"{Path.GetFileName(versionRoot)} [grey30][[[/][lime]{versionCalculator.GetVersion(ContextResolver.GetRepositoryContext(versionRoot))}[/][grey30]]][/]");
-                versionRootNodes[versionRoot] = versionRootNode;
-                // Console.WriteLine($"Version root: {versionRoot}");
-                
-                var parentRootNodeKey = versionRootNodes.Keys
-                    .OrderByDescending(k => k.Length)
-                    .FirstOrDefault(k => versionRoot != k && versionRoot.StartsWith(k));
-
-                if (parentRootNodeKey is null)
-                {
-                    continue;
-                }
-
-                var parentRootNode = versionRootNodes[parentRootNodeKey];
-                parentRootNode.AddChild(versionRootNode);
-            }
-
+            var currentRoot = repositoryContext.GetVersionRoots();
             var version = versionCalculator.GetVersion(repositoryContext);
 
             var versionCache = new Dictionary<string, Version>();
             versionCache.Add(repositoryContext.VersionRootPath, version);
 
+            var csprojFiles = Git.GitFindFiles(repositoryContext.RepositoryRootPath, ":(glob)**/*.csproj");
+            var packageJsonFiles = Git.GitFindFiles(repositoryContext.RepositoryRootPath, ":(glob)**/package.json");
             var versionableFiles = csprojFiles.Concat(packageJsonFiles);
+
+            var versionables = new List<Versionable>();
+
             foreach (var versionableFile in versionableFiles.Select(f => Path.Combine(repositoryContext.RepositoryRootPath, f)))
             {
                 var directoryPath = Path.GetDirectoryName(versionableFile);
-                var directoryName = Path.GetFileName(directoryPath);
 
-                if (directoryName is null || directoryPath is null)
+                if (directoryPath is null)
                 {
                     continue;
                 }
 
-                var fileContext = ContextResolver.GetRepositoryContext(directoryPath);
+                var versionableContext = ContextResolver.GetRepositoryContext(directoryPath);
 
-                if (!versionCache.TryGetValue(fileContext.VersionRootPath, out var fileVersion))
+                if (!versionCache.TryGetValue(versionableContext.VersionRootPath, out var fileVersion))
                 {
-                    fileVersion = versionCalculator.GetVersion(fileContext);
-                    versionCache.Add(fileContext.VersionRootPath, fileVersion);
+                    fileVersion = versionCalculator.GetVersion(versionableContext);
+                    versionCache.Add(versionableContext.VersionRootPath, fileVersion);
                 }
-                
-                versionRootNodes[fileContext.VersionRootPath].AddChild(new TreeNode($"{Path.GetFileName(versionableFile)} [grey30][[[/][grey54]{fileVersion}[/][grey30]]][/]"));
+
+                var versionRoot = currentRoot.AllVersionRoots().First(r => r.Path == versionableContext.VersionRootPath);
+
+                var versionable = new Versionable(versionableFile, versionRoot, fileVersion);
+                versionables.Add(versionable);
+            }
+
+            var root = new Tree($"{Path.GetFileName(currentRoot.Path)} [grey30][[[/][lime]{versionCalculator.GetVersion(ContextResolver.GetRepositoryContext(currentRoot.Path))}[/][grey30]]][/]");
+            var treeStack = new Stack<(VersionRoot versionRoot, IHasTreeNodes treeCursor)>();
+
+            foreach (var versionable in versionables.Where(v => v.VersionRoot == currentRoot))
+            {
+                root.AddNode($"{Path.GetFileName(versionable.Path)} [grey30][[[/][grey54]{versionable.Version}[/][grey30]]][/]");
             }
             
-            new TreeRenderer().WriteTree(versionRootNodes[versionRoots[0]]);
+            foreach (var childRoot in currentRoot.VersionRoots.Reverse())
+            {
+                treeStack.Push((childRoot, root as IHasTreeNodes));
+            }
+
+            while (treeStack.TryPop(out var tuple))
+            {
+                var (versionRoot, treeCursor) = tuple;
+                var treeNode = treeCursor.AddNode($"{Path.GetFileName(versionRoot.Path)} [grey30][[[/][lime]{versionCalculator.GetVersion(ContextResolver.GetRepositoryContext(versionRoot.Path))}[/][grey30]]][/]");
+
+                foreach (var versionable in versionables.Where(v => v.VersionRoot == versionRoot))
+                {
+                    treeNode.AddNode($"{Path.GetFileName(versionable.Path)} [grey30][[[/][grey54]{versionable.Version}[/][grey30]]][/]");
+                }
+
+                foreach (var childRoot in versionRoot.VersionRoots.Reverse())
+                {
+                    treeStack.Push((childRoot, treeNode));
+                }
+            }
+
+            AnsiConsole.Render(root);
         }
     }
 }

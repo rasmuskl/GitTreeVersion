@@ -15,10 +15,7 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateEmptyDirectory();
 
-            Action action = () =>
-            {
-                new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
-            };
+            Action action = () => { new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath)); };
 
             action.Should().Throw<InvalidOperationException>();
         }
@@ -57,7 +54,7 @@ namespace GitTreeVersion.Tests
 
             version.Should().Be(new Version(0, 0, 2));
         }
-        
+
         [Fact]
         public void SingleMergeCommitNoFastForward()
         {
@@ -88,29 +85,29 @@ namespace GitTreeVersion.Tests
             CommitNewFile(repositoryPath);
 
             MergeBranchToMaster(repositoryPath, branchName, true);
-            
+
             var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             version.Should().Be(new Version(0, 0, 2));
         }
-        
+
         [Fact]
         public void MajorVersionConfigured()
         {
             var repositoryPath = CreateGitRepository();
 
-            CommitVersionConfig(repositoryPath, new VersionConfig { Major = "1" });
+            CommitVersionConfig(repositoryPath, new VersionConfig {Major = "1"});
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             version.Should().Be(new Version(1, 0, 1));
         }
-        
+
         [Fact]
         public void AzureDevOpsDetachedHeadState()
         {
             var repositoryPath = CreateGitRepository();
-            
+
             CommitNewFile(repositoryPath);
 
             var branchName = CreateBranch(repositoryPath);
@@ -125,7 +122,7 @@ namespace GitTreeVersion.Tests
             Git.RunGit(repositoryPath, "merge", "--no-ff", "refs/pull/42/pull");
             Git.RunGit(repositoryPath, "update-ref", "refs/pull/42/merge", "HEAD");
             Git.RunGit(repositoryPath, "checkout", "refs/pull/42/merge");
-            
+
             // git status at this point gives: 
             //
             // (local)
@@ -135,7 +132,7 @@ namespace GitTreeVersion.Tests
             // (Azure DevOps)
             // HEAD detached at pull/119/merge
             // nothing to commit, working tree clean
-            
+
             var version = new VersionCalculator().GetVersion(ContextResolver.GetRepositoryContext(repositoryPath));
 
             // TODO: Determine correct version here
