@@ -53,10 +53,10 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static void GitFindFiles(string workingDirectory, string pathSpec)
+        public static string[] GitFindFiles(string workingDirectory, string pathSpec)
         {
             var runGit = RunGit(workingDirectory, "ls-files", "--", pathSpec);
-            Console.WriteLine(runGit);
+            return runGit.SplitOutput();
         }
 
         public static string RunGit(string workingDirectory, params string[] arguments)

@@ -1,4 +1,5 @@
-﻿using System.CommandLine;
+﻿using System;
+using System.CommandLine;
 using System.Threading.Tasks;
 using GitTreeVersion.Commands;
 
@@ -15,6 +16,7 @@ namespace GitTreeVersion
             rootCommand.AddCommand(new VersionCommand());
             rootCommand.AddCommand(new CheckChangedCommand());
             rootCommand.AddCommand(new AnalyzeCommand());
+            rootCommand.AddCommand(new TreeCommand());
 
             await rootCommand.InvokeAsync(args);
         }
