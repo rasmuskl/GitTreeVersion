@@ -2,9 +2,9 @@
 
 namespace GitTreeVersion.Context
 {
-    public class Versionable
+    public class Deployable
     {
-        public Versionable(string path, VersionRoot versionRoot, Version version)
+        public Deployable(string path, VersionRoot versionRoot, Version version)
         {
             Path = path;
             VersionRoot = versionRoot;

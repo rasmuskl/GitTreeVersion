@@ -31,7 +31,7 @@ namespace GitTreeVersion.Commands
             var packageJsonFiles = Git.GitFindFiles(repositoryContext.VersionRootPath, ":(glob)**/package.json");
             var versionableFiles = csprojFiles.Concat(packageJsonFiles);
 
-            var versionables = new List<Versionable>();
+            var versionables = new List<Deployable>();
 
             foreach (var versionableFile in versionableFiles.Select(f => Path.Combine(repositoryContext.VersionRootPath, f)))
             {
@@ -52,7 +52,7 @@ namespace GitTreeVersion.Commands
 
                 var versionRoot = currentRoot.AllVersionRoots().First(r => r.Path == versionableContext.VersionRootPath);
 
-                var versionable = new Versionable(versionableFile, versionRoot, fileVersion);
+                var versionable = new Deployable(versionableFile, versionRoot, fileVersion);
                 versionables.Add(versionable);
             }
 

@@ -12,7 +12,7 @@ namespace GitTreeVersion.Context
         }
 
         public string Path { get; }
-
+        
         public ImmutableList<VersionRoot> VersionRoots { get; private set; } = ImmutableList<VersionRoot>.Empty;
 
         public void AddVersionRoot(VersionRoot versionRoot)
