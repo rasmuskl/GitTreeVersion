@@ -30,6 +30,31 @@ namespace GitTreeVersion.Context
             return new RepositoryContext(repositoryRoot, versionRootPath!, versionConfig!);
         }
 
+        public static RepositoryContext GetRepositoryContext(RepositoryContext repositoryContext, VersionRoot versionRoot)
+        {
+            return new(repositoryContext.RepositoryRootPath, versionRoot, repositoryContext.VersionConfig);
+        }
+
+        public static FileGraph GetFileGraph(string workingDirectory)
+        {
+            var repositoryRoot = FindDirectoryAbove(workingDirectory, ".git");
+
+            if (repositoryRoot is null)
+            {
+                throw new InvalidOperationException("Not in a git repository");
+            }
+            
+            var configFilePath = FindFileAbove(workingDirectory, VersionConfigFileName);
+
+            if (configFilePath == null)
+            {
+                return new FileGraph(repositoryRoot, repositoryRoot);
+            }
+            
+            var versionRootPath = Path.GetDirectoryName(configFilePath);
+            return new FileGraph(repositoryRoot, versionRootPath!);
+        }
+
         private static string? FindFileAbove(string directory, string fileName)
         {
             var filePath = Path.Combine(directory, fileName);
@@ -48,7 +73,7 @@ namespace GitTreeVersion.Context
             
             return FindFileAbove(parentDirectory, fileName);
         }
-        
+
         private static string? FindDirectoryAbove(string directory, string directoryName)
         {
             var directoryPath = Path.Combine(directory, directoryName);

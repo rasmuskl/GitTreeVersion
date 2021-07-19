@@ -11,7 +11,6 @@ namespace GitTreeVersion
             string? range = null;
             var merges = Git.GitMerges(context.VersionRootPath, range, ".");
 
-            
             // Console.WriteLine($"Merges: {merges.Length}");
             //
             // Console.WriteLine($"Last merge: {merges.FirstOrDefault()}");

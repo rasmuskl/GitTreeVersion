@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GitTreeVersion.Commands;
+using GitTreeVersion.Deployables;
 
 namespace GitTreeVersion.Context
 {
@@ -12,6 +13,15 @@ namespace GitTreeVersion.Context
             RepositoryRootPath = repositoryRootPath;
             VersionRootPath = versionRootPath;
             VersionConfig = versionConfig;
+            VersionRoot = GetVersionRoot();
+        }
+
+        public RepositoryContext(string repositoryRootPath, VersionRoot versionRoot, VersionConfig versionConfig)
+        {
+            RepositoryRootPath = repositoryRootPath;
+            VersionRootPath = versionRoot.Path;
+            VersionConfig = versionConfig;
+            VersionRoot = versionRoot;
         }
 
         public string RepositoryRootPath { get; }
@@ -19,8 +29,10 @@ namespace GitTreeVersion.Context
         public string VersionRootPath { get; }
 
         public VersionConfig VersionConfig { get; }
+        
+        public VersionRoot VersionRoot { get; }
 
-        public VersionRoot GetVersionRoots()
+        private VersionRoot GetVersionRoot()
         {
             var rootVersionRoot = new VersionRoot(VersionRootPath);
 
@@ -50,6 +62,41 @@ namespace GitTreeVersion.Context
             }
 
             return rootVersionRoot;
+        }
+
+        public Deployable[] GetDeployables()
+        {
+            var versionCache = new Dictionary<string, Version>();
+
+            var csprojFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/*.csproj");
+            var packageJsonFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/package.json");
+            var deployableFiles = csprojFiles.Concat(packageJsonFiles);
+
+            var deployables = new List<Deployable>();
+
+            foreach (var deployableFile in deployableFiles.Select(f => Path.Combine(VersionRootPath, f)))
+            {
+                var directoryPath = Path.GetDirectoryName(deployableFile);
+
+                if (directoryPath is null)
+                {
+                    continue;
+                }
+                
+                var versionableContext = ContextResolver.GetRepositoryContext(directoryPath);
+
+                if (!versionCache.TryGetValue(versionableContext.VersionRootPath, out var version))
+                {
+                    version = new VersionCalculator().GetVersion(versionableContext);
+                    versionCache.Add(versionableContext.VersionRootPath, version);
+                }
+
+                var versionRoot = VersionRoot.AllVersionRoots().First(r => r.Path == versionableContext.VersionRootPath);
+                var versionable = new Deployable(deployableFile, versionRoot, version);
+                deployables.Add(versionable);
+            }
+
+            return deployables.ToArray();
         }
     }
 }

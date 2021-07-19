@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
-using System.Xml.Linq;
-using System.Xml.XPath;
+using GitTreeVersion.Deployables;
 
 namespace GitTreeVersion.Commands
 {
@@ -22,6 +21,8 @@ namespace GitTreeVersion.Commands
             var analyzedProjects = new HashSet<string>();
             var projectQueue = new Queue<string>();
             projectQueue.Enqueue(project);
+
+            var processor = new CsprojDeployableProcessor();
 
             while (projectQueue.TryDequeue(out var nextProject))
             {
@@ -41,19 +42,13 @@ namespace GitTreeVersion.Commands
                 
                 analyzedProjects.Add(fileInfo.FullName);
 
-                var document = XDocument.Load(fileInfo.FullName);
+                var deployablePaths = processor.GetSourceReferencedDeployablePaths(fileInfo);
 
-                foreach (var element in document.Root?.XPathSelectElements("//ProjectReference") ?? Array.Empty<XElement>())
+                foreach (var deployablePath in deployablePaths)
                 {
-                    var attribute = element.Attribute("Include");
-
-                    if (fileInfo.DirectoryName is null || attribute is null)
-                    {
-                        continue;
-                    }
-                    
-                    projectQueue.Enqueue(Path.Combine(fileInfo.DirectoryName, attribute.Value));
+                    projectQueue.Enqueue(deployablePath);
                 }
+
             }
         }
     }

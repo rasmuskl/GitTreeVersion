@@ -1,6 +1,7 @@
 ﻿using System;
+using GitTreeVersion.Context;
 
-namespace GitTreeVersion.Context
+namespace GitTreeVersion.Deployables
 {
     public class Deployable
     {
