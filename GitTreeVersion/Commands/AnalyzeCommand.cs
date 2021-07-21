@@ -2,7 +2,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
-using System.Threading;
 using GitTreeVersion.Context;
 using Spectre.Console;
 
@@ -13,7 +12,7 @@ namespace GitTreeVersion.Commands
         public AnalyzeCommand() : base("analyze", "Analyzes dependencies between project")
         {
             Handler = CommandHandler.Create<string>(Execute);
-            
+
             AddArgument(new Argument("project"));
         }
 
@@ -27,16 +26,16 @@ namespace GitTreeVersion.Commands
             {
                 throw new Exception($"File not found: {project}");
             }
-
+            
             AnsiConsole
                 .Status()
                 .Spinner(Spinner.Known.Aesthetic)
                 .Start("Analyzing project...", ctx =>
-            {
-                var graph = ContextResolver.GetFileGraph(projectDirectoryPath);
-                AddDependencies(tree, graph, projectPath);
-            });
-            
+                {
+                    var graph = ContextResolver.GetFileGraph(projectDirectoryPath!);
+                    AddDependencies(tree, graph, projectPath);
+                });
+
             AnsiConsole.Render(tree);
         }
 
