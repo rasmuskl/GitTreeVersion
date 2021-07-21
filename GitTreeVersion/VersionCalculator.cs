@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
 
@@ -13,11 +14,12 @@ namespace GitTreeVersion
         
         public Version GetVersion(FileGraph graph, string versionRootPath)
         {
+            var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
+            
             string? range = null;
-            var merges = Git.GitMerges(versionRootPath, range, ".");
+            var merges = Git.GitMerges(versionRootPath, range, relevantPaths);
 
             // Console.WriteLine($"Merges: {merges.Length}");
-            //
             // Console.WriteLine($"Last merge: {merges.FirstOrDefault()}");
 
             string? sinceMergeRange = null;
@@ -27,10 +29,9 @@ namespace GitTreeVersion
                 sinceMergeRange = $"{merges.First()}..";
             }
 
-            var nonMerges = Git.GitNonMerges( versionRootPath, sinceMergeRange, ".");
+            var nonMerges = Git.GitNonMerges( versionRootPath, sinceMergeRange, relevantPaths);
 
             // Console.WriteLine($"Non-merges: {nonMerges.Length}");
-            //
             // Console.WriteLine($"Version: 0.{merges.Length}.{nonMerges.Length}");
 
             return new Version(0, merges.Length, nonMerges.Length);

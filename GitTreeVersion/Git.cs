@@ -9,7 +9,7 @@ namespace GitTreeVersion
     {
         public static bool Debug { get; set; }
         
-        public static string[] GitNonMerges(string workingDirectory, string? range, string? pathSpec)
+        public static string[] GitNonMerges(string workingDirectory, string? range, string[]? pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -18,10 +18,10 @@ namespace GitTreeVersion
 
             arguments.Add(range ?? "HEAD");
 
-            if (pathSpec is not null)
+            if (pathSpecs is not null)
             {
                 arguments.Add("--");
-                arguments.Add(pathSpec);
+                arguments.AddRange(pathSpecs);
             }
 
             var output = RunGit(workingDirectory, arguments.ToArray());
@@ -34,7 +34,7 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static string[] GitMerges(string workingDirectory, string? range, string? pathSpec)
+        public static string[] GitMerges(string workingDirectory, string? range, string[]? pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -43,10 +43,10 @@ namespace GitTreeVersion
 
             arguments.Add(range ?? "HEAD");
 
-            if (pathSpec is not null)
+            if (pathSpecs is not null)
             {
                 arguments.Add("--");
-                arguments.Add(pathSpec);
+                arguments.AddRange(pathSpecs);
             }
 
             var output = RunGit(workingDirectory, arguments.ToArray());
