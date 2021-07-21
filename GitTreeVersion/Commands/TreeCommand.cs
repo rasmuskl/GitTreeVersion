@@ -20,41 +20,39 @@ namespace GitTreeVersion.Commands
         private void Execute()
         {
             var versionCalculator = new VersionCalculator();
-            var repositoryContext = ContextResolver.GetRepositoryContext(Environment.CurrentDirectory);
+            var graph = ContextResolver.GetFileGraph(Environment.CurrentDirectory);
 
-            var currentRoot = repositoryContext.VersionRoot;
-            var deployables = repositoryContext.GetDeployables();
+            var rootVersionPath = graph.VersionRootPath;
 
-            var root = new Tree($"{Path.GetFileName(currentRoot.Path)} [grey30][[[/][lime]{versionCalculator.GetVersion(repositoryContext)}[/][grey30]]][/]");
-            var treeStack = new Stack<(VersionRoot versionRoot, IHasTreeNodes treeCursor)>();
+            var version = versionCalculator.GetVersion(graph, rootVersionPath);
+            var tree = new Tree($"{Path.GetFileName(rootVersionPath)} [grey30][[[/][lime]{version}[/][grey30]]][/]");
 
-            foreach (var deployable in deployables.Where(v => v.VersionRoot == currentRoot))
-            {
-                root.AddNode($"{Path.GetFileName(deployable.Path)} [grey30][[[/][grey54]{deployable.Version}[/][grey30]]][/]");
-            }
+            AddVersionRootChildren(tree, graph, rootVersionPath, version);
+
+            AnsiConsole.Render(tree);
+        }
+
+        private void AddVersionRootChildren(IHasTreeNodes tree, FileGraph graph, string versionRootPath, Version version)
+        {
+            var childDeployables = graph.DeployableFileVersionRoots
+                .Where(p => p.Value == versionRootPath)
+                .Select(x => x.Key);
             
-            foreach (var childRoot in currentRoot.VersionRoots.Reverse())
+            foreach (var childDeployable in childDeployables)
             {
-                treeStack.Push((childRoot, root as IHasTreeNodes));
+                tree.AddNode($"{Path.GetRelativePath(versionRootPath, childDeployable)}  [grey30][[[/][grey54]{version}[/][grey30]]][/]");
             }
 
-            while (treeStack.TryPop(out var tuple))
+            var childVersionRoots = graph.VersionRootParents
+                .Where(p => p.Value == versionRootPath)
+                .Select(x => x.Key);
+            
+            foreach (var childVersionRoot in childVersionRoots)
             {
-                var (versionRoot, treeCursor) = tuple;
-                var treeNode = treeCursor.AddNode($"{Path.GetFileName(versionRoot.Path)} [grey30][[[/][lime]{versionCalculator.GetVersion(ContextResolver.GetRepositoryContext(repositoryContext, versionRoot))}[/][grey30]]][/]");
-
-                foreach (var deployable in deployables.Where(v => v.VersionRoot == versionRoot))
-                {
-                    treeNode.AddNode($"{Path.GetFileName(deployable.Path)} [grey30][[[/][grey54]{deployable.Version}[/][grey30]]][/]");
-                }
-
-                foreach (var childRoot in versionRoot.VersionRoots.Reverse())
-                {
-                    treeStack.Push((childRoot, treeNode));
-                }
+                var childVersion = new VersionCalculator().GetVersion(graph, childVersionRoot);
+                var treeNode = tree.AddNode($"{Path.GetRelativePath(versionRootPath, childVersionRoot)} [grey30][[[/][lime]{childVersion}[/][grey30]]][/]");
+                AddVersionRootChildren(treeNode, graph, childVersionRoot, childVersion);
             }
-
-            AnsiConsole.Render(root);
         }
     }
 }

@@ -87,6 +87,12 @@ namespace GitTreeVersion.Context
 
             while (deployableQueue.TryDequeue(out var deployableFilePath))
             {
+                if (!File.Exists(deployableFilePath))
+                {
+                    Console.WriteLine($"File not found: {deployableFilePath}");
+                    continue;
+                }
+                
                 var fileName = Path.GetFileName(deployableFilePath);
 
                 if (fileName == "package.json")
