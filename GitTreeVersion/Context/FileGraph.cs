@@ -32,7 +32,7 @@ namespace GitTreeVersion.Context
             versionRootPaths.Add(versionRootPath);
             versionRootParents[versionRootPath] = null;
 
-            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, ":(glob)**/version.json")
+            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, ":(glob)**/version.json", true)
                 .Select(Path.GetDirectoryName)
                 .OrderBy(p => p);
 
@@ -61,8 +61,8 @@ namespace GitTreeVersion.Context
             VersionRootPaths = versionRootPaths.ToArray();
             VersionRootParents = versionRootParents;
 
-            var csprojFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/*.csproj");
-            var packageJsonFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/package.json");
+            var csprojFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/*.csproj", true);
+            var packageJsonFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/package.json", true);
 
             var deployableFilePaths = csprojFiles
                 .Concat(packageJsonFiles)

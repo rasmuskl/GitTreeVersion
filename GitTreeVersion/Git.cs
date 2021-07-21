@@ -53,10 +53,18 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static string[] GitFindFiles(string workingDirectory, string pathSpec)
+        public static string[] GitFindFiles(string workingDirectory, string pathSpec, bool includeUnstaged = false)
         {
-            var runGit = RunGit(workingDirectory, "ls-files", "--", pathSpec);
-            return runGit.SplitOutput();
+            if (includeUnstaged)
+            {
+                var runGit = RunGit(workingDirectory, "ls-files", "--exclude-standard", "--others", "--cached", "--", pathSpec);
+                return runGit.SplitOutput();
+            }
+            else
+            {
+                var runGit = RunGit(workingDirectory, "ls-files", "--", pathSpec);
+                return runGit.SplitOutput();
+            }
         }
 
         public static string RunGit(string workingDirectory, params string[] arguments)
