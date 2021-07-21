@@ -21,7 +21,7 @@ namespace GitTreeVersion.Commands
             Git.Debug = debug;
 
             var stopwatch = Stopwatch.StartNew();
-            var repositoryContext = ContextResolver.GetRepositoryContext(Environment.CurrentDirectory);
+            var repositoryContext = ContextResolver.GetFileGraph(Environment.CurrentDirectory);
 
             Console.WriteLine($"Repository root: {repositoryContext.RepositoryRootPath}");
             Console.WriteLine($"Version root: {repositoryContext.VersionRootPath}");

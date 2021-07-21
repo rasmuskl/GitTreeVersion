@@ -1,39 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Text.Json;
 
 namespace GitTreeVersion.Context
 {
     public static class ContextResolver
     {
         public const string VersionConfigFileName = "version.json";
-
-        public static RepositoryContext GetRepositoryContext(string workingDirectory)
-        {
-            var repositoryRoot = FindDirectoryAbove(workingDirectory, ".git");
-
-            if (repositoryRoot is null)
-            {
-                throw new InvalidOperationException("Not in a git repository");
-            }
-            
-            var configFilePath = FindFileAbove(workingDirectory, VersionConfigFileName);
-
-            if (configFilePath == null)
-            {
-                return new RepositoryContext(repositoryRoot, repositoryRoot, VersionConfig.Default);
-            }
-            
-            var configContent = File.ReadAllText(configFilePath);
-            var versionRootPath = Path.GetDirectoryName(configFilePath);
-            var versionConfig = JsonSerializer.Deserialize<VersionConfig>(configContent);
-            return new RepositoryContext(repositoryRoot, versionRootPath!, versionConfig!);
-        }
-
-        public static RepositoryContext GetRepositoryContext(RepositoryContext repositoryContext, VersionRoot versionRoot)
-        {
-            return new(repositoryContext.RepositoryRootPath, versionRoot, repositoryContext.VersionConfig);
-        }
 
         public static FileGraph GetFileGraph(string workingDirectory)
         {

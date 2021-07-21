@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
@@ -19,12 +17,11 @@ namespace GitTreeVersion.Commands
 
         private void Execute()
         {
-            var versionCalculator = new VersionCalculator();
             var graph = ContextResolver.GetFileGraph(Environment.CurrentDirectory);
 
             var rootVersionPath = graph.VersionRootPath;
 
-            var version = versionCalculator.GetVersion(graph, rootVersionPath);
+            var version = new VersionCalculator().GetVersion(graph, rootVersionPath);
             var tree = new Tree($"{Path.GetFileName(rootVersionPath)} [grey30][[[/][lime]{version}[/][grey30]]][/]");
 
             AddVersionRootChildren(tree, graph, rootVersionPath, version);
