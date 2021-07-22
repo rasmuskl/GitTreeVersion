@@ -47,7 +47,7 @@ namespace GitTreeVersion.Context
 
                 var potentialParent = rootStack.Peek();
 
-                while (!new DirectoryInfo(rootPath).IsSubPathOf(new DirectoryInfo(potentialParent)))
+                while (!new DirectoryInfo(rootPath).IsInSubPathOf(new DirectoryInfo(potentialParent)))
                 {
                     rootStack.Pop();
                     potentialParent = rootStack.Peek();
@@ -74,7 +74,7 @@ namespace GitTreeVersion.Context
             foreach (var deployableFilePath in deployableFilePaths)
             {
                 var deployableVersionRoot = versionRootPaths
-                    .Where(p => new FileInfo(deployableFilePath).Directory.IsSubPathOf(new DirectoryInfo(p)))
+                    .Where(p => new FileInfo(deployableFilePath).IsInSubPathOf(new DirectoryInfo(p)))
                     .OrderByDescending(p => p.Length)
                     .First();
 
@@ -129,11 +129,11 @@ namespace GitTreeVersion.Context
         public string[] GetRelevantPathsForVersionRoot(string versionRootPath)
         {
             var nestedVersionRoots = VersionRootPaths
-                .Where(p => new DirectoryInfo(p).IsSubPathOf(new DirectoryInfo(versionRootPath)))
+                .Where(p => new DirectoryInfo(p).IsInSubPathOf(new DirectoryInfo(versionRootPath)))
                 .ToArray();
             
             var nestedDeployables = GetReachableDeployables(DeployableFilePaths
-                    .Where(fp => nestedVersionRoots.Any(v => new FileInfo(fp).Directory.IsSubPathOf(new DirectoryInfo(v)))))
+                    .Where(fp => nestedVersionRoots.Any(v => new FileInfo(fp).IsInSubPathOf(new DirectoryInfo(v)))))
                     .ToArray();
             
             var relevantDirectories = nestedVersionRoots
@@ -151,7 +151,7 @@ namespace GitTreeVersion.Context
                     continue;
                 }
                 
-                if (previous is not null && new DirectoryInfo(relevantDirectory).IsSubPathOf(new DirectoryInfo(previous)))
+                if (previous is not null && new DirectoryInfo(relevantDirectory).IsInSubPathOf(new DirectoryInfo(previous)))
                 {
                     continue;
                 }
@@ -160,12 +160,12 @@ namespace GitTreeVersion.Context
                 paths.Add(relevantDirectory);
             }
 
-            foreach (var pathOutsideRepository in paths.Where(p => !new DirectoryInfo(p).IsSubPathOf(new DirectoryInfo(RepositoryRootPath))))
+            foreach (var pathOutsideRepository in paths.Where(p => !new DirectoryInfo(p).IsInSubPathOf(new DirectoryInfo(RepositoryRootPath))))
             {
                 Console.WriteLine($"Relevant path outside repository: {pathOutsideRepository}");
             }
             
-            paths.RemoveAll(p => !new DirectoryInfo(p).IsSubPathOf(new DirectoryInfo(RepositoryRootPath)));
+            paths.RemoveAll(p => !new DirectoryInfo(p).IsInSubPathOf(new DirectoryInfo(RepositoryRootPath)));
 
             return paths.ToArray();
         }
