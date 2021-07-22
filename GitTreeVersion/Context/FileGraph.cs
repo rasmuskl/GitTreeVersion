@@ -101,8 +101,7 @@ namespace GitTreeVersion.Context
                 }
                 else if (Path.GetExtension(deployableFilePath) == ".csproj")
                 {
-                    var referencedDeployablePaths =
-                        csprojDeployableProcessor.GetSourceReferencedDeployablePaths(new FileInfo(deployableFilePath));
+                    var referencedDeployablePaths = csprojDeployableProcessor.GetSourceReferencedDeployablePaths(new FileInfo(deployableFilePath));
                     deployableDependencies[deployableFilePath] = referencedDeployablePaths;
 
                     foreach (var path in referencedDeployablePaths)
