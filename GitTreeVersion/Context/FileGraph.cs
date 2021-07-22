@@ -47,7 +47,7 @@ namespace GitTreeVersion.Context
 
                 var potentialParent = rootStack.Peek();
 
-                while (!rootPath.StartsWith(potentialParent))
+                while (!rootPath.IsSubPathOf(potentialParent))
                 {
                     rootStack.Pop();
                     potentialParent = rootStack.Peek();
@@ -74,7 +74,7 @@ namespace GitTreeVersion.Context
             foreach (var deployableFilePath in deployableFilePaths)
             {
                 var deployableVersionRoot = versionRootPaths
-                    .Where(p => deployableFilePath.StartsWith(p))
+                    .Where(p => deployableFilePath.IsSubPathOf(p))
                     .OrderByDescending(p => p.Length)
                     .First();
 
@@ -129,11 +129,11 @@ namespace GitTreeVersion.Context
         public string[] GetRelevantPathsForVersionRoot(string versionRootPath)
         {
             var nestedVersionRoots = VersionRootPaths
-                .Where(p => p.StartsWith(versionRootPath))
+                .Where(p => p.IsSubPathOf(versionRootPath))
                 .ToArray();
             
             var nestedDeployables = GetReachableDeployables(DeployableFilePaths
-                    .Where(p => nestedVersionRoots.Any(p.StartsWith)))
+                    .Where(p => nestedVersionRoots.Any(p.IsSubPathOf)))
                     .ToArray();
             
             var relevantDirectories = nestedVersionRoots
@@ -151,7 +151,7 @@ namespace GitTreeVersion.Context
                     continue;
                 }
                 
-                if (previous is not null && relevantDirectory.StartsWith(previous))
+                if (previous is not null && relevantDirectory.IsSubPathOf(previous))
                 {
                     continue;
                 }
@@ -160,12 +160,12 @@ namespace GitTreeVersion.Context
                 paths.Add(relevantDirectory);
             }
 
-            foreach (var pathOutsideRepository in paths.Where(p => !p.StartsWith(RepositoryRootPath)))
+            foreach (var pathOutsideRepository in paths.Where(p => !p.IsSubPathOf(RepositoryRootPath)))
             {
                 Console.WriteLine($"Relevant path outside repository: {pathOutsideRepository}");
             }
             
-            paths.RemoveAll(p => !p.StartsWith(RepositoryRootPath));
+            paths.RemoveAll(p => !p.IsSubPathOf(RepositoryRootPath));
 
             return paths.ToArray();
         }
