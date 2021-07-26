@@ -61,5 +61,12 @@ namespace GitTreeVersion.Paths
         {
             return !left.Equals(right);
         }
+
+        public bool IsInSubPathOf(AbsoluteDirectoryPath parentPath)
+        {
+            var directoryPath = Path.TrimEndingDirectorySeparator(new DirectoryInfo(_path).FullName) + Path.DirectorySeparatorChar;
+            var potentialParentDirectoryPath = Path.TrimEndingDirectorySeparator(new DirectoryInfo(parentPath.ToString()).FullName) + Path.DirectorySeparatorChar;
+            return directoryPath.StartsWith(potentialParentDirectoryPath);
+        }
     }
 }

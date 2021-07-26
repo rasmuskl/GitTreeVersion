@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using FluentAssertions;
+using GitTreeVersion.Paths;
 using Xunit;
 
 namespace GitTreeVersion.Tests
@@ -9,35 +11,35 @@ namespace GitTreeVersion.Tests
         [Fact]
         public void IsInSubPathOf_File_True()
         {
-            var path1 = new DirectoryInfo("xyz/");
-            var path2 = new FileInfo("xyz/def/abc.txt");
+            var directoryPath = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz/"));
+            var filePath = new AbsoluteFilePath(Path.Combine(Environment.CurrentDirectory, "xyz/def/abc.txt"));
 
-            path2.IsInSubPathOf(path1).Should().BeTrue();
+            filePath.IsInSubPathOf(directoryPath).Should().BeTrue();
         }
 
         [Fact]
         public void IsInSubPathOf_File_False()
         {
-            var path1 = new DirectoryInfo("xyz/");
-            var path2 = new FileInfo("xyzd/def/abc.txt");
+            var parentPath = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz/"));
+            var filePath = new AbsoluteFilePath(Path.Combine(Environment.CurrentDirectory, "xyzd/def/abc.txt"));
 
-            path2.IsInSubPathOf(path1).Should().BeFalse();
+            filePath.IsInSubPathOf(parentPath).Should().BeFalse();
         }
 
         [Fact]
         public void IsInSubPathOf_Directory_True()
         {
-            var path1 = new DirectoryInfo("xyz");
-            var path2 = new DirectoryInfo("xyz/def/");
+            var parentPath = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz"));
+            var childPath = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz/def/"));
 
-            path2.IsInSubPathOf(path1).Should().BeTrue();
+            childPath.IsInSubPathOf(parentPath).Should().BeTrue();
         }
 
         [Fact]
         public void IsInSubPathOf_Directory_False()
         {
-            var path1 = new DirectoryInfo("xyz");
-            var path2 = new DirectoryInfo("def/xyz");
+            var path1 = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz"));
+            var path2 = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "def/xyz"));
 
             path2.IsInSubPathOf(path1).Should().BeFalse();
         }
