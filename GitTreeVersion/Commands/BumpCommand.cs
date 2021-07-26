@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using GitTreeVersion.Context;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Commands
 {
@@ -22,11 +23,11 @@ namespace GitTreeVersion.Commands
         {
             Console.WriteLine($"Bumping {type}");
 
-            var fileGraph = ContextResolver.GetFileGraph(Environment.CurrentDirectory);
+            var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
             var versionRootPath = fileGraph.VersionRootPath;
             Console.WriteLine($"Version root path: {versionRootPath}");
 
-            var versionBumpDirectoryPath = Path.Combine(versionRootPath, ".version", type.ToString());
+            var versionBumpDirectoryPath = Path.Combine(versionRootPath.ToString(), ".version", type.ToString());
             var versionBumpFilePath = Path.Combine(versionBumpDirectoryPath, DateTime.UtcNow.ToString("yyyyMMddHHmmssff"));
             Directory.CreateDirectory(versionBumpDirectoryPath);
             File.WriteAllText(versionBumpFilePath, string.Empty);

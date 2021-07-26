@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Context
 {
@@ -7,7 +8,7 @@ namespace GitTreeVersion.Context
     {
         public const string VersionConfigFileName = "version.json";
 
-        public static FileGraph GetFileGraph(string workingDirectory)
+        public static FileGraph GetFileGraph(AbsoluteDirectoryPath workingDirectory)
         {
             var repositoryRoot = FindDirectoryAbove(workingDirectory, ".git");
 
@@ -20,49 +21,45 @@ namespace GitTreeVersion.Context
 
             if (configFilePath == null)
             {
-                return new FileGraph(repositoryRoot, repositoryRoot);
+                return new FileGraph(repositoryRoot.Value, repositoryRoot.Value);
             }
             
-            var versionRootPath = Path.GetDirectoryName(configFilePath);
-            return new FileGraph(repositoryRoot, versionRootPath!);
+            var versionRootPath = configFilePath.Value.Parent;
+            return new FileGraph(repositoryRoot.Value, versionRootPath);
         }
 
-        private static string? FindFileAbove(string directory, string fileName)
+        private static AbsoluteFilePath? FindFileAbove(AbsoluteDirectoryPath directory, string fileName)
         {
-            var filePath = Path.Combine(directory, fileName);
+            var filePath = Path.Combine(directory.ToString(), fileName);
             
             if (File.Exists(filePath))
             {
-                return filePath;
+                return new AbsoluteFilePath(filePath);
             }
             
-            var parentDirectory = Path.GetDirectoryName(directory);
-
-            if (parentDirectory == null)
+            if (directory.IsAtRoot)
             {
                 return null;
             }
             
-            return FindFileAbove(parentDirectory, fileName);
+            return FindFileAbove(directory.Parent, fileName);
         }
 
-        private static string? FindDirectoryAbove(string directory, string directoryName)
+        private static AbsoluteDirectoryPath? FindDirectoryAbove(AbsoluteDirectoryPath directory, string directoryName)
         {
-            var directoryPath = Path.Combine(directory, directoryName);
+            var directoryPath = Path.Combine(directory.ToString(), directoryName);
             
             if (Directory.Exists(directoryPath))
             {
                 return directory;
             }
-            
-            var parentDirectory = Path.GetDirectoryName(directory);
 
-            if (parentDirectory == null)
+            if (directory.IsAtRoot)
             {
                 return null;
             }
-            
-            return FindDirectoryAbove(parentDirectory, directoryName);
+
+            return FindDirectoryAbove(directory.Parent, directoryName);
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion
 {
@@ -9,7 +11,7 @@ namespace GitTreeVersion
     {
         public static bool Debug { get; set; }
         
-        public static string[] GitNonMerges(string workingDirectory, string? range, string[]? pathSpecs)
+        public static string[] GitNonMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -21,20 +23,20 @@ namespace GitTreeVersion
             if (pathSpecs is not null)
             {
                 arguments.Add("--");
-                arguments.AddRange(pathSpecs);
+                arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
             }
 
             var output = RunGit(workingDirectory, arguments.ToArray());
             return output.SplitOutput();
         }
 
-        public static string[] GitLastCommitHashes(string workingDirectory, string pathSpec)
+        public static string[] GitLastCommitHashes(AbsoluteDirectoryPath workingDirectory, string pathSpec)
         {
             var output = RunGit(workingDirectory, "rev-list", "HEAD", "--", pathSpec);
             return output.SplitOutput();
         }
 
-        public static string[] GitMerges(string workingDirectory, string? range, string[]? pathSpecs)
+        public static string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -46,14 +48,14 @@ namespace GitTreeVersion
             if (pathSpecs is not null)
             {
                 arguments.Add("--");
-                arguments.AddRange(pathSpecs);
+                arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
             }
 
             var output = RunGit(workingDirectory, arguments.ToArray());
             return output.SplitOutput();
         }
 
-        public static string[] GitFindFiles(string workingDirectory, string pathSpec, bool includeUnstaged = false)
+        public static string[] GitFindFiles(AbsoluteDirectoryPath workingDirectory, string pathSpec, bool includeUnstaged = false)
         {
             if (includeUnstaged)
             {
@@ -67,12 +69,12 @@ namespace GitTreeVersion
             }
         }
 
-        public static string RunGit(string workingDirectory, params string[] arguments)
+        public static string RunGit(AbsoluteDirectoryPath workingDirectory, params string[] arguments)
         {
             var startInfo = new ProcessStartInfo
             {
                 FileName = "git",
-                WorkingDirectory = workingDirectory,
+                WorkingDirectory = workingDirectory.ToString(),
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };

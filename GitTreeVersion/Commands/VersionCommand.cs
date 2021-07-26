@@ -4,6 +4,7 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.Xml.Linq;
 using GitTreeVersion.Context;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Commands
 {
@@ -21,7 +22,7 @@ namespace GitTreeVersion.Commands
             Git.Debug = debug;
 
             var stopwatch = Stopwatch.StartNew();
-            var repositoryContext = ContextResolver.GetFileGraph(Environment.CurrentDirectory);
+            var repositoryContext = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
 
             Console.WriteLine($"Repository root: {repositoryContext.RepositoryRootPath}");
             Console.WriteLine($"Version root: {repositoryContext.VersionRootPath}");

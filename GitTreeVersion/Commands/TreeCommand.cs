@@ -4,6 +4,7 @@ using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
+using GitTreeVersion.Paths;
 using Spectre.Console;
 
 namespace GitTreeVersion.Commands
@@ -17,19 +18,19 @@ namespace GitTreeVersion.Commands
 
         private void Execute()
         {
-            var graph = ContextResolver.GetFileGraph(Environment.CurrentDirectory);
+            var graph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
 
             var rootVersionPath = graph.VersionRootPath;
 
             var version = new VersionCalculator().GetVersion(graph, rootVersionPath);
-            var tree = new Tree($"{Path.GetFileName(rootVersionPath)} [grey30][[[/][lime]{version}[/][grey30]]][/]");
+            var tree = new Tree($"{rootVersionPath.Name} [grey30][[[/][lime]{version}[/][grey30]]][/]");
 
             AddVersionRootChildren(tree, graph, rootVersionPath, version);
 
             AnsiConsole.Render(tree);
         }
 
-        private void AddVersionRootChildren(IHasTreeNodes tree, FileGraph graph, string versionRootPath, Version version)
+        private void AddVersionRootChildren(IHasTreeNodes tree, FileGraph graph, AbsoluteDirectoryPath versionRootPath, Version version)
         {
             var childDeployables = graph.DeployableFileVersionRoots
                 .Where(p => p.Value == versionRootPath)
@@ -37,17 +38,17 @@ namespace GitTreeVersion.Commands
             
             foreach (var childDeployable in childDeployables)
             {
-                tree.AddNode($"{Path.GetRelativePath(versionRootPath, childDeployable)}  [grey30][[[/][grey54]{version}[/][grey30]]][/]");
+                tree.AddNode($"{Path.GetRelativePath(versionRootPath.ToString(), childDeployable.ToString())}  [grey30][[[/][grey54]{version}[/][grey30]]][/]");
             }
 
             var childVersionRoots = graph.VersionRootParents
-                .Where(p => p.Value == versionRootPath)
+                .Where(p => p.Value!.Value == versionRootPath)
                 .Select(x => x.Key);
             
             foreach (var childVersionRoot in childVersionRoots)
             {
                 var childVersion = new VersionCalculator().GetVersion(graph, childVersionRoot);
-                var treeNode = tree.AddNode($"{Path.GetRelativePath(versionRootPath, childVersionRoot)} [grey30][[[/][lime]{childVersion}[/][grey30]]][/]");
+                var treeNode = tree.AddNode($"{Path.GetRelativePath(versionRootPath.ToString(), childVersionRoot.ToString())} [grey30][[[/][lime]{childVersion}[/][grey30]]][/]");
                 AddVersionRootChildren(treeNode, graph, childVersionRoot, childVersion);
             }
         }

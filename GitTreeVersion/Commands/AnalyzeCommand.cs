@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using GitTreeVersion.Context;
+using GitTreeVersion.Paths;
 using Spectre.Console;
 
 namespace GitTreeVersion.Commands
@@ -18,11 +19,11 @@ namespace GitTreeVersion.Commands
 
         private void Execute(string project)
         {
-            var projectPath = Path.GetFullPath(project);
-            var projectDirectoryPath = Path.GetDirectoryName(projectPath);
-            var tree = new Tree(Path.GetFileName(projectPath));
+            var projectPath = new AbsoluteFilePath(Path.GetFullPath(project));
+            var projectDirectoryPath = projectPath.Parent;
+            var tree = new Tree(projectPath.FileName);
 
-            if (!File.Exists(projectPath))
+            if (!projectPath.Exists)
             {
                 throw new Exception($"File not found: {project}");
             }
@@ -39,7 +40,7 @@ namespace GitTreeVersion.Commands
             AnsiConsole.Render(tree);
         }
 
-        private void AddDependencies(IHasTreeNodes tree, FileGraph graph, string projectPath)
+        private void AddDependencies(IHasTreeNodes tree, FileGraph graph, AbsoluteFilePath projectPath)
         {
             if (!graph.DeployableFileDependencies.TryGetValue(projectPath, out var dependencies))
             {
@@ -48,7 +49,7 @@ namespace GitTreeVersion.Commands
 
             foreach (var dependency in dependencies)
             {
-                var node = tree.AddNode(Path.GetFileName(dependency));
+                var node = tree.AddNode(dependency.FileName);
                 AddDependencies(node, graph, dependency);
             }
         }

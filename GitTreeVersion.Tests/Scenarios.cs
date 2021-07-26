@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using FluentAssertions;
 using GitTreeVersion.Context;
+using GitTreeVersion.Paths;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -139,45 +140,45 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new Version(0, 1, 0));
         }
 
-        private void CommitVersionConfig(string repositoryPath, VersionConfig versionConfig)
+        private void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
         {
-            File.WriteAllText(Path.Combine(repositoryPath, ContextResolver.VersionConfigFileName), JsonSerializer.Serialize(versionConfig, new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(Path.Combine(repositoryPath.ToString(), ContextResolver.VersionConfigFileName), JsonSerializer.Serialize(versionConfig, new JsonSerializerOptions { WriteIndented = true }));
             Git.RunGit(repositoryPath, "add", "--all");
             Git.RunGit(repositoryPath, "commit", "--all", "--message", Guid.NewGuid().ToString());
         }
 
-        private static void MergeBranchToMaster(string repositoryPath, string branchName, bool fastForward = false)
+        private static void MergeBranchToMaster(AbsoluteDirectoryPath repositoryPath, string branchName, bool fastForward = false)
         {
             Git.RunGit(repositoryPath, "checkout", "master");
             Git.RunGit(repositoryPath, "merge", fastForward ? "--ff" : "--no-ff", branchName);
         }
 
-        private static string CreateBranch(string repositoryPath)
+        private static string CreateBranch(AbsoluteDirectoryPath repositoryPath)
         {
             var branchName = Guid.NewGuid().ToString();
             Git.RunGit(repositoryPath, "checkout", "-b", branchName);
             return branchName;
         }
 
-        private static void CommitNewFile(string repositoryPath)
+        private static void CommitNewFile(AbsoluteDirectoryPath repositoryPath)
         {
-            File.WriteAllText(Path.Combine(repositoryPath, Guid.NewGuid().ToString()), Guid.NewGuid().ToString());
+            File.WriteAllText(Path.Combine(repositoryPath.ToString(), Guid.NewGuid().ToString()), Guid.NewGuid().ToString());
             Git.RunGit(repositoryPath, "add", "--all");
             Git.RunGit(repositoryPath, "commit", "--all", "--message", Guid.NewGuid().ToString());
         }
 
-        private static string CreateGitRepository()
+        private static AbsoluteDirectoryPath CreateGitRepository()
         {
             var repositoryPath = CreateEmptyDirectory();
             Git.RunGit(repositoryPath, "init");
             return repositoryPath;
         }
 
-        private static string CreateEmptyDirectory()
+        private static AbsoluteDirectoryPath CreateEmptyDirectory()
         {
             var repositoryPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(repositoryPath);
-            return repositoryPath;
+            return new AbsoluteDirectoryPath(repositoryPath);
         }
     }
 }

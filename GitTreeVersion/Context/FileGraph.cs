@@ -3,31 +3,32 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GitTreeVersion.Deployables;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Context
 {
     public class FileGraph
     {
-        public string RepositoryRootPath { get; }
-        public string VersionRootPath { get; }
+        public AbsoluteDirectoryPath RepositoryRootPath { get; }
+        public AbsoluteDirectoryPath VersionRootPath { get; }
 
-        public string[] DeployableFilePaths { get; }
-        public Dictionary<string, string> DeployableFileVersionRoots { get; }
-        public Dictionary<string, string[]> DeployableFileDependencies { get; }
+        public AbsoluteFilePath[] DeployableFilePaths { get; }
+        public Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath> DeployableFileVersionRoots { get; }
+        public Dictionary<AbsoluteFilePath, AbsoluteFilePath[]> DeployableFileDependencies { get; }
 
-        public string[] VersionRootPaths { get; }
-        public Dictionary<string, string?> VersionRootParents { get; }
+        public AbsoluteDirectoryPath[] VersionRootPaths { get; }
+        public Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?> VersionRootParents { get; }
 
-        public FileGraph(string repositoryRootPath, string versionRootPath)
+        public FileGraph(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath versionRootPath)
         {
             RepositoryRootPath = repositoryRootPath;
             VersionRootPath = versionRootPath;
 
-            var rootStack = new Stack<string>();
+            var rootStack = new Stack<AbsoluteDirectoryPath>();
             rootStack.Push(versionRootPath);
 
-            var versionRootPaths = new List<string>();
-            var versionRootParents = new Dictionary<string, string?>();
+            var versionRootPaths = new List<AbsoluteDirectoryPath>();
+            var versionRootParents = new Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?>();
 
             versionRootPaths.Add(versionRootPath);
             versionRootParents[versionRootPath] = null;
@@ -43,11 +44,11 @@ namespace GitTreeVersion.Context
                     continue;
                 }
 
-                var rootPath = Path.Combine(VersionRootPath, versionDirectoryPath);
+                var rootPath = new AbsoluteDirectoryPath(Path.Combine(VersionRootPath.ToString(), versionDirectoryPath));
 
                 var potentialParent = rootStack.Peek();
 
-                while (!new DirectoryInfo(rootPath).IsInSubPathOf(new DirectoryInfo(potentialParent)))
+                while (!new DirectoryInfo(rootPath.ToString()).IsInSubPathOf(new DirectoryInfo(potentialParent.ToString())))
                 {
                     rootStack.Pop();
                     potentialParent = rootStack.Peek();
@@ -66,42 +67,42 @@ namespace GitTreeVersion.Context
 
             var deployableFilePaths = csprojFiles
                 .Concat(packageJsonFiles)
-                .Select(f => Path.GetFullPath(Path.Combine(VersionRootPath, f)))
+                .Select(f => new AbsoluteFilePath(Path.GetFullPath(Path.Combine(VersionRootPath.ToString(), f))))
                 .ToHashSet();
 
-            var deployableVersionRoots = new Dictionary<string, string>();
+            var deployableVersionRoots = new Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath>();
 
             foreach (var deployableFilePath in deployableFilePaths)
             {
                 var deployableVersionRoot = versionRootPaths
-                    .Where(p => new FileInfo(deployableFilePath).IsInSubPathOf(new DirectoryInfo(p)))
-                    .OrderByDescending(p => p.Length)
+                    .Where(p => new FileInfo(deployableFilePath.ToString()).IsInSubPathOf(new DirectoryInfo(p.ToString())))
+                    .OrderByDescending(p => p.PathLength)
                     .First();
 
                 deployableVersionRoots[deployableFilePath] = deployableVersionRoot;
             }
 
-            var deployableDependencies = new Dictionary<string, string[]>();
-            var deployableQueue = new Queue<string>(deployableFilePaths);
+            var deployableDependencies = new Dictionary<AbsoluteFilePath, AbsoluteFilePath[]>();
+            var deployableQueue = new Queue<AbsoluteFilePath>(deployableFilePaths);
             var csprojDeployableProcessor = new CsprojDeployableProcessor();
 
             while (deployableQueue.TryDequeue(out var deployableFilePath))
             {
-                if (!File.Exists(deployableFilePath))
+                if (!deployableFilePath.Exists)
                 {
                     Console.WriteLine($"File not found: {deployableFilePath}");
                     continue;
                 }
 
-                var fileName = Path.GetFileName(deployableFilePath);
+                var fileName = deployableFilePath.FileName;
 
                 if (fileName == "package.json")
                 {
-                    deployableDependencies[fileName] = Array.Empty<string>();
+                    deployableDependencies[new AbsoluteFilePath(fileName)] = Array.Empty<AbsoluteFilePath>();
                 }
-                else if (Path.GetExtension(deployableFilePath) == ".csproj")
+                else if (deployableFilePath.Extension == ".csproj")
                 {
-                    var referencedDeployablePaths = csprojDeployableProcessor.GetSourceReferencedDeployablePaths(new FileInfo(deployableFilePath));
+                    var referencedDeployablePaths = csprojDeployableProcessor.GetSourceReferencedDeployablePaths(new FileInfo(deployableFilePath.ToString()));
                     deployableDependencies[deployableFilePath] = referencedDeployablePaths;
 
                     foreach (var path in referencedDeployablePaths)
@@ -126,32 +127,27 @@ namespace GitTreeVersion.Context
             DeployableFileVersionRoots = deployableVersionRoots;
         }
 
-        public string[] GetRelevantPathsForVersionRoot(string versionRootPath)
+        public AbsoluteDirectoryPath[] GetRelevantPathsForVersionRoot(AbsoluteDirectoryPath versionRootPath)
         {
             var nestedVersionRoots = VersionRootPaths
-                .Where(p => new DirectoryInfo(p).IsInSubPathOf(new DirectoryInfo(versionRootPath)))
+                .Where(p => new DirectoryInfo(p.ToString()).IsInSubPathOf(new DirectoryInfo(versionRootPath.ToString())))
                 .ToArray();
             
             var nestedDeployables = GetReachableDeployables(DeployableFilePaths
-                    .Where(fp => nestedVersionRoots.Any(v => new FileInfo(fp).IsInSubPathOf(new DirectoryInfo(v)))))
+                    .Where(fp => nestedVersionRoots.Any(v => new FileInfo(fp.ToString()).IsInSubPathOf(new DirectoryInfo(v.ToString())))))
                     .ToArray();
             
             var relevantDirectories = nestedVersionRoots
-                .Concat(nestedDeployables.Select(Path.GetDirectoryName))
-                .OrderBy(x => x)
+                .Concat(nestedDeployables.Select(d => d.Parent))
+                .OrderBy(x => x.Name)
                 .ToArray();
 
-            var paths = new List<string>();
-            string? previous = null;
+            var paths = new List<AbsoluteDirectoryPath>();
+            AbsoluteDirectoryPath? previous = null;
             
             foreach (var relevantDirectory in relevantDirectories)
             {
-                if (relevantDirectory is null)
-                {
-                    continue;
-                }
-                
-                if (previous is not null && new DirectoryInfo(relevantDirectory).IsInSubPathOf(new DirectoryInfo(previous)))
+                if (previous is not null && new DirectoryInfo(relevantDirectory.ToString()).IsInSubPathOf(new DirectoryInfo(previous.Value.ToString())))
                 {
                     continue;
                 }
@@ -160,17 +156,17 @@ namespace GitTreeVersion.Context
                 paths.Add(relevantDirectory);
             }
 
-            foreach (var pathOutsideRepository in paths.Where(p => !new DirectoryInfo(p).IsInSubPathOf(new DirectoryInfo(RepositoryRootPath))))
+            foreach (var pathOutsideRepository in paths.Where(p => !new DirectoryInfo(p.ToString()).IsInSubPathOf(new DirectoryInfo(RepositoryRootPath.ToString()))))
             {
                 Console.WriteLine($"Relevant path outside repository: {pathOutsideRepository}");
             }
             
-            paths.RemoveAll(p => !new DirectoryInfo(p).IsInSubPathOf(new DirectoryInfo(RepositoryRootPath)));
+            paths.RemoveAll(p => !new DirectoryInfo(p.ToString()).IsInSubPathOf(new DirectoryInfo(RepositoryRootPath.ToString())));
 
             return paths.ToArray();
         }
 
-        private IEnumerable<string> GetReachableDeployables(IEnumerable<string> deployablePaths)
+        private IEnumerable<AbsoluteFilePath> GetReachableDeployables(IEnumerable<AbsoluteFilePath> deployablePaths)
         {
             foreach (var deployablePath in deployablePaths)
             {

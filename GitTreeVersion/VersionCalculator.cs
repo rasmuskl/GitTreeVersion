@@ -1,7 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion
 {
@@ -12,7 +12,7 @@ namespace GitTreeVersion
             return GetVersion(graph, graph.VersionRootPath);
         }
         
-        public Version GetVersion(FileGraph graph, string versionRootPath)
+        public Version GetVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
             

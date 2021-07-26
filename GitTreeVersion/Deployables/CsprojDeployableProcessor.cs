@@ -3,28 +3,29 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Deployables
 {
     public class CsprojDeployableProcessor
     {
-        public string[] GetSourceReferencedDeployablePaths(FileInfo fileInfo)
+        public AbsoluteFilePath[] GetSourceReferencedDeployablePaths(FileInfo fileInfo)
         {
             var document = XDocument.Load(fileInfo.FullName);
 
             if (fileInfo.DirectoryName == null)
             {
-                return Array.Empty<string>();
+                return Array.Empty<AbsoluteFilePath>();
             }
 
             var projectReferenceElements = document.Root?.XPathSelectElements("//ProjectReference");
 
             if (projectReferenceElements is null)
             {
-                return Array.Empty<string>();
+                return Array.Empty<AbsoluteFilePath>();
             }
 
-            var list = new List<string>();
+            var list = new List<AbsoluteFilePath>();
 
             foreach (var element in projectReferenceElements)
             {
@@ -35,7 +36,7 @@ namespace GitTreeVersion.Deployables
                     continue;
                 }
                 
-                list.Add(Path.GetFullPath(Path.Combine(fileInfo.DirectoryName, attribute.Value)));
+                list.Add(new AbsoluteFilePath(Path.GetFullPath(Path.Combine(fileInfo.DirectoryName, attribute.Value))));
             }
 
             return list.ToArray();
