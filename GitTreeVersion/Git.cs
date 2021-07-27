@@ -20,7 +20,7 @@ namespace GitTreeVersion
 
             arguments.Add(range ?? "HEAD");
 
-            if (pathSpecs is not null)
+            if (pathSpecs.Any())
             {
                 arguments.Add("--");
                 arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
@@ -45,7 +45,7 @@ namespace GitTreeVersion
 
             arguments.Add(range ?? "HEAD");
 
-            if (pathSpecs is not null)
+            if (pathSpecs.Any())
             {
                 arguments.Add("--");
                 arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));

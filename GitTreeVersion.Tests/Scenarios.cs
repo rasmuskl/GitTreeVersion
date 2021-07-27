@@ -4,8 +4,10 @@ using System.Text.Json;
 using FluentAssertions;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
+using LibGit2Sharp;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using Version = System.Version;
 
 namespace GitTreeVersion.Tests
 {
@@ -25,7 +27,7 @@ namespace GitTreeVersion.Tests
         public void EmptyRepository()
         {
             var repositoryPath = CreateGitRepository();
-
+            
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
             version.Should().Be(new Version(0, 0, 0));
@@ -162,15 +164,26 @@ namespace GitTreeVersion.Tests
 
         private static void CommitNewFile(AbsoluteDirectoryPath repositoryPath)
         {
-            File.WriteAllText(Path.Combine(repositoryPath.ToString(), Guid.NewGuid().ToString()), Guid.NewGuid().ToString());
-            Git.RunGit(repositoryPath, "add", "--all");
-            Git.RunGit(repositoryPath, "commit", "--all", "--message", Guid.NewGuid().ToString());
+            var fileName = Path.Combine(repositoryPath.ToString(), Guid.NewGuid().ToString());
+            File.WriteAllText(fileName, Guid.NewGuid().ToString());
+
+            using var repository = new Repository(repositoryPath.ToString());
+            
+            repository.Index.Add(Path.GetRelativePath(repositoryPath.ToString(), fileName));
+            repository.Index.Write();
+            
+            var signature = new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), DateTimeOffset.UtcNow);
+            repository.Commit(Guid.NewGuid().ToString(), signature, signature);
+
+            // Git.RunGit(repositoryPath, "add", "--all");
+            // Git.RunGit(repositoryPath, "commit", "--all", "--message", Guid.NewGuid().ToString());
         }
 
         private static AbsoluteDirectoryPath CreateGitRepository()
         {
             var repositoryPath = CreateEmptyDirectory();
-            Git.RunGit(repositoryPath, "init");
+            // Git.RunGit(repositoryPath, "init");
+            Repository.Init(repositoryPath.ToString());
             return repositoryPath;
         }
 

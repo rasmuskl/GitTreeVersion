@@ -30,7 +30,6 @@ namespace GitTreeVersion.Commands
             
             AnsiConsole
                 .Status()
-                .Spinner(Spinner.Known.Aesthetic)
                 .Start("Analyzing project...", ctx =>
                 {
                     var graph = ContextResolver.GetFileGraph(projectDirectoryPath!);
