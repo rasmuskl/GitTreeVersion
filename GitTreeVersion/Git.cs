@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using GitTreeVersion.Paths;
+using Spectre.Console;
 
 namespace GitTreeVersion
 {
@@ -30,7 +31,7 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static string? GitNewestCommitUnixTimeSeconds(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
+        public static long? GitNewestCommitUnixTimeSeconds(AbsoluteDirectoryPath workingDirectory, string? range, string[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("log");
@@ -44,15 +45,22 @@ namespace GitTreeVersion
             if (pathSpecs.Any())
             {
                 arguments.Add("--");
-                arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
+                arguments.AddRange(pathSpecs);
             }
 
             var output = RunGit(workingDirectory, arguments.ToArray());
-            return output.SplitOutput().SingleOrDefault();
+            var unixTimeSeconds = output.SplitOutput().SingleOrDefault();
+
+            if (unixTimeSeconds is null)
+            {
+                return null;
+            }
+
+            return long.Parse(unixTimeSeconds);
         }
         
         public static string[] GitCommits(AbsoluteDirectoryPath workingDirectory, string? range,
-            AbsoluteDirectoryPath[] pathSpecs, DateTimeOffset? after = null, DateTimeOffset? before = null)
+            string[] pathSpecs, DateTimeOffset? after = null, DateTimeOffset? before = null)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -119,6 +127,24 @@ namespace GitTreeVersion
             }
         }
 
+        public static string[] GitDiffFileNames(AbsoluteDirectoryPath workingDirectory, string? range, string? pathSpec)
+        {
+            var arguments = new List<string>();
+            arguments.Add("diff");
+            arguments.Add("--name-only");
+
+            arguments.Add(range ?? "HEAD");
+
+            if (!string.IsNullOrWhiteSpace(pathSpec))
+            {
+                arguments.Add("--");
+                arguments.Add(pathSpec);
+            }
+
+            var output = RunGit(workingDirectory, arguments.ToArray());
+            return output.SplitOutput();
+        }
+
         public static string RunGit(AbsoluteDirectoryPath workingDirectory, params string[] arguments)
         {
             var startInfo = new ProcessStartInfo
@@ -136,7 +162,7 @@ namespace GitTreeVersion
 
             if (Debug)
             {
-                Console.WriteLine($"git {string.Join(" ", startInfo.ArgumentList)}");
+                AnsiConsole.MarkupLine($"[grey35]> git {string.Join(" ", startInfo.ArgumentList)}[/]");
             }
 
             var process = Process.Start(startInfo);

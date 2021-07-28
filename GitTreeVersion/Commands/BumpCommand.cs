@@ -11,15 +11,12 @@ namespace GitTreeVersion.Commands
     {
         public BumpCommand() : base("bump", "Bump versions")
         {
-            Handler = CommandHandler.Create<VersionType>(Execute);
+            Handler = CommandHandler.Create<VersionTypeOptions>(Execute);
 
-            var typeArgument = new Argument<VersionType>("type");
-
-
-            AddArgument(typeArgument);
+            AddArgument(new Argument<VersionTypeOptions>("type"));
         }
 
-        private void Execute(VersionType type)
+        private void Execute(VersionTypeOptions type)
         {
             Console.WriteLine($"Bumping {type}");
 
@@ -27,18 +24,16 @@ namespace GitTreeVersion.Commands
             var versionRootPath = fileGraph.VersionRootPath;
             Console.WriteLine($"Version root path: {versionRootPath}");
 
-            var versionBumpDirectoryPath = Path.Combine(versionRootPath.ToString(), ".version", type.ToString());
-            var versionBumpFilePath = Path.Combine(versionBumpDirectoryPath, DateTime.UtcNow.ToString("yyyyMMddHHmmssff"));
-            Directory.CreateDirectory(versionBumpDirectoryPath);
-            File.WriteAllText(versionBumpFilePath, string.Empty);
+            var bumper = new Bumper();
+            bumper.Bump(versionRootPath, (VersionType)type);
         }
 
-        private enum VersionType
+        private enum VersionTypeOptions
         {
             // ReSharper disable once InconsistentNaming
-            major,
+            major = VersionType.Major,
             // ReSharper disable once InconsistentNaming
-            minor
+            minor = VersionType.Minor
         }
     }
 }

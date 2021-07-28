@@ -35,9 +35,10 @@ namespace GitTreeVersion.Commands
             // Console.WriteLine($"Last commit hash: {string.Join(Environment.NewLine, lastCommitHashes)}");
             // var range = $"{lastCommitHashes.Last()}..";
 
-
             var versionCalculator = new VersionCalculator();
-            var version = calver ? versionCalculator.GetCalendarVersion(repositoryContext) : versionCalculator.GetVersion(repositoryContext);
+            var version = calver 
+                ? versionCalculator.GetCalendarVersion(repositoryContext) 
+                : versionCalculator.GetVersion(repositoryContext);
 
             if (directoryBuildProps)
             {
