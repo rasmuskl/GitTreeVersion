@@ -98,7 +98,7 @@ namespace GitTreeVersion.Context
 
                 if (fileName == "package.json")
                 {
-                    deployableDependencies[new AbsoluteFilePath(fileName)] = Array.Empty<AbsoluteFilePath>();
+                    deployableDependencies[deployableFilePath] = Array.Empty<AbsoluteFilePath>();
                 }
                 else if (deployableFilePath.Extension == ".csproj")
                 {

@@ -94,6 +94,34 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new Version(0, 0, 2));
         }
 
+        [Fact]
+        public void CalendarVersioning_SingleCommit()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
+            CommitNewFile(repositoryPath, commitTime);
+
+            var version = new VersionCalculator().GetCalendarVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new Version(2021, 101, 0));
+        }
+
+        [Fact]
+        public void CalendarVersioning_TwoCommit()
+        {
+            var repositoryPath = CreateGitRepository();
+            
+            var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
+            CommitNewFile(repositoryPath, commitTime);
+            CommitNewFile(repositoryPath, commitTime.Add(TimeSpan.FromSeconds(5)));
+            
+            var version = new VersionCalculator().GetCalendarVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new Version(2021, 101, 1));
+        }
+
+        
         // [Fact]
         // public void MajorVersionConfigured()
         // {
@@ -162,7 +190,7 @@ namespace GitTreeVersion.Tests
             return branchName;
         }
 
-        private static void CommitNewFile(AbsoluteDirectoryPath repositoryPath)
+        private static void CommitNewFile(AbsoluteDirectoryPath repositoryPath, DateTimeOffset? commitTime = null)
         {
             var fileName = Path.Combine(repositoryPath.ToString(), Guid.NewGuid().ToString());
             File.WriteAllText(fileName, Guid.NewGuid().ToString());
@@ -172,17 +200,13 @@ namespace GitTreeVersion.Tests
             repository.Index.Add(Path.GetRelativePath(repositoryPath.ToString(), fileName));
             repository.Index.Write();
             
-            var signature = new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), DateTimeOffset.UtcNow);
+            var signature = new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), commitTime.GetValueOrDefault(DateTimeOffset.UtcNow));
             repository.Commit(Guid.NewGuid().ToString(), signature, signature);
-
-            // Git.RunGit(repositoryPath, "add", "--all");
-            // Git.RunGit(repositoryPath, "commit", "--all", "--message", Guid.NewGuid().ToString());
         }
 
         private static AbsoluteDirectoryPath CreateGitRepository()
         {
             var repositoryPath = CreateEmptyDirectory();
-            // Git.RunGit(repositoryPath, "init");
             Repository.Init(repositoryPath.ToString());
             return repositoryPath;
         }

@@ -30,6 +30,56 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
+        public static string? GitNewestCommitUnixTimeSeconds(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
+        {
+            var arguments = new List<string>();
+            arguments.Add("log");
+            arguments.Add("--full-history");
+            arguments.Add("--author-date-order");
+            arguments.Add("--max-count=1");
+            arguments.Add("--format=%at");
+
+            arguments.Add(range ?? "HEAD");
+            
+            if (pathSpecs.Any())
+            {
+                arguments.Add("--");
+                arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
+            }
+
+            var output = RunGit(workingDirectory, arguments.ToArray());
+            return output.SplitOutput().SingleOrDefault();
+        }
+        
+        public static string[] GitCommits(AbsoluteDirectoryPath workingDirectory, string? range,
+            AbsoluteDirectoryPath[] pathSpecs, DateTimeOffset? after = null, DateTimeOffset? before = null)
+        {
+            var arguments = new List<string>();
+            arguments.Add("rev-list");
+            arguments.Add("--full-history");
+
+            if (after is not null)
+            {
+                arguments.Add($"--after={after.Value.ToUnixTimeSeconds()}");
+            }
+
+            if (before is not null)
+            {
+                arguments.Add($"--before={before.Value.ToUnixTimeSeconds()}");
+            }
+            
+            arguments.Add(range ?? "HEAD");
+            
+            if (pathSpecs.Any())
+            {
+                arguments.Add("--");
+                arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
+            }
+
+            var output = RunGit(workingDirectory, arguments.ToArray());
+            return output.SplitOutput();
+        }
+
         public static string[] GitLastCommitHashes(AbsoluteDirectoryPath workingDirectory, string pathSpec)
         {
             var output = RunGit(workingDirectory, "rev-list", "HEAD", "--", pathSpec);

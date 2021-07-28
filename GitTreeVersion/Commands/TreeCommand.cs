@@ -41,8 +41,13 @@ namespace GitTreeVersion.Commands
                 tree.AddNode($"{Path.GetRelativePath(versionRootPath.ToString(), childDeployable.ToString())}  [grey30][[[/][grey54]{version}[/][grey30]]][/]");
             }
 
+            foreach (var versionRootParent in graph.VersionRootParents)
+            {
+                Console.WriteLine($"{versionRootParent.Key}: {versionRootParent.Value}");
+            }
+
             var childVersionRoots = graph.VersionRootParents
-                .Where(p => p.Value!.Value == versionRootPath)
+                .Where(p => p.Value.HasValue && p.Value.Value == versionRootPath)
                 .Select(x => x.Key);
             
             foreach (var childVersionRoot in childVersionRoots)
