@@ -11,11 +11,13 @@ namespace GitTreeVersion.Commands
     {
         public InitCommand() : base("init", "Creates version root")
         {
-            Handler = CommandHandler.Create(Execute);
+            Handler = CommandHandler.Create<bool>(Execute);
         }
 
-        private void Execute()
+        private void Execute(bool debug)
         {
+            Log.IsDebug = debug;
+
             var workingDirectory = Environment.CurrentDirectory;
             var versionConfigPath = Path.Combine(workingDirectory, ContextResolver.VersionConfigFileName);
 

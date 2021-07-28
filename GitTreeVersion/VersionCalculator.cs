@@ -19,9 +19,14 @@ namespace GitTreeVersion
             var majorVersionFiles = Git.GitFindFiles(versionRootPath, ":(glob).version/major/*", false);
             var majorVersionCommits = Git.GitCommits(versionRootPath, null, new [] { ":(glob).version/major/*" });
 
+            foreach (var file in majorVersionFiles)
+            {
+                Log.Debug($"Major version file: {file}");
+            }
+
             foreach (var majorVersionCommit in majorVersionCommits)
             {
-                Console.WriteLine($"Major commit: {majorVersionCommit}");
+                Log.Debug($"Major version commit: {majorVersionCommit}");
             }
 
             string? range = null;
@@ -35,7 +40,7 @@ namespace GitTreeVersion
 
                 foreach (var file in changedMinorFiles)
                 {
-                    Console.WriteLine($"Minor file: {file}");
+                    Log.Debug($"Minor version file: {file}");
                 }
 
                 minor = changedMinorFiles.Length;
@@ -44,7 +49,7 @@ namespace GitTreeVersion
 
                 foreach (var commit in minorVersionCommits)
                 {
-                    Console.WriteLine($"Minor commit: {commit}");
+                    Log.Debug($"Minor version commit: {commit}");
                 }
 
                 if (minorVersionCommits.Any())
@@ -58,7 +63,7 @@ namespace GitTreeVersion
 
                 foreach (var file in minorVersionFiles)
                 {
-                    Console.WriteLine($"Minor file: {file}");
+                    Log.Debug($"Minor file: {file}");
                 }
                 
                 minor = minorVersionFiles.Length;
@@ -66,7 +71,7 @@ namespace GitTreeVersion
 
                 foreach (var commit in minorVersionCommits)
                 {
-                    Console.WriteLine($"Minor commit: {commit}");
+                    Log.Debug($"Minor commit: {commit}");
                 }
                 
                 if (minorVersionCommits.Any())
@@ -77,8 +82,8 @@ namespace GitTreeVersion
             
             // var merges = Git.GitMerges(versionRootPath, range, relevantPaths);
 
-            // Console.WriteLine($"Merges: {merges.Length}");
-            // Console.WriteLine($"Last merge: {merges.FirstOrDefault()}");
+            // Log.Debug($"Merges: {merges.Length}");
+            // Log.Debug($"Last merge: {merges.FirstOrDefault()}");
 
             // if (merges.Any())
             // {
@@ -87,8 +92,8 @@ namespace GitTreeVersion
 
             var commits = Git.GitCommits(versionRootPath, range, relevantPaths.Select(p => p.ToString()).ToArray());
 
-            // Console.WriteLine($"Non-merges: {nonMerges.Length}");
-            // Console.WriteLine($"Version: 0.{merges.Length}.{nonMerges.Length}");
+            // Log.Debug($"Non-merges: {nonMerges.Length}");
+            // Log.Debug($"Version: 0.{merges.Length}.{nonMerges.Length}");
 
             var patch = commits.Length;
             
@@ -109,21 +114,21 @@ namespace GitTreeVersion
             
             var newestCommitTimestamp = DateTimeOffset.FromUnixTimeSeconds(newestCommit.Value);
 
-            // Console.WriteLine($"{newestCommit} - {newestCommitTimestamp}");
+            Log.Debug($"{newestCommit} - {newestCommitTimestamp}");
 
             var newestCommitDate = new DateTimeOffset(newestCommitTimestamp.Date, TimeSpan.Zero);
             
-            // Console.WriteLine($"Since date: {newestCommitDate}");
+            Log.Debug($"Since date: {newestCommitDate}");
 
             var gitCommits = Git.GitCommits(graph.VersionRootPath, null, pathSpecs, newestCommitDate, newestCommitTimestamp);
             var firstOnDate = gitCommits.Last();
             
-            // Console.WriteLine($"First on date: {firstOnDate}");
+            Log.Debug($"First on date: {firstOnDate}");
 
             var range = $"{firstOnDate}..";
             var commits = Git.GitCommits(graph.VersionRootPath, range, pathSpecs);
 
-            // Console.WriteLine($"Commits since: {commits.Length}");
+            Log.Debug($"Commits since: {commits.Length}");
 
             return new Version(newestCommitTimestamp.Year, int.Parse(newestCommitTimestamp.ToString("Mdd")), commits.Length);
         }

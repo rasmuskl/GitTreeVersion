@@ -13,18 +13,19 @@ namespace GitTreeVersion.Commands
         public VersionCommand() : base("version", "Versions the thing")
         {
             Handler = CommandHandler.Create<bool, bool, bool>(Execute);
-            
+
             AddOption(new Option<bool>("--calver"));
-            
+
             AddOption(new Option<bool>("--directory-build-props"));
         }
 
         private void Execute(bool directoryBuildProps, bool calver, bool debug)
         {
-            Git.Debug = debug;
+            Log.IsDebug = debug;
 
             var stopwatch = Stopwatch.StartNew();
-            var repositoryContext = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
+            var repositoryContext =
+                ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
 
             Console.WriteLine($"Repository root: {repositoryContext.RepositoryRootPath}");
             Console.WriteLine($"Version root: {repositoryContext.VersionRootPath}");
@@ -36,8 +37,8 @@ namespace GitTreeVersion.Commands
             // var range = $"{lastCommitHashes.Last()}..";
 
             var versionCalculator = new VersionCalculator();
-            var version = calver 
-                ? versionCalculator.GetCalendarVersion(repositoryContext) 
+            var version = calver
+                ? versionCalculator.GetCalendarVersion(repositoryContext)
                 : versionCalculator.GetVersion(repositoryContext);
 
             if (directoryBuildProps)
@@ -54,10 +55,7 @@ namespace GitTreeVersion.Commands
 
             Console.WriteLine($"Version: {version}");
 
-            if (debug)
-            {
-                Console.WriteLine($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
-            }
+            Log.Debug($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
     }
 }

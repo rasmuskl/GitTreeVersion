@@ -9,11 +9,13 @@ namespace GitTreeVersion.Commands
     {
         public CheckChangedCommand() : base("check-changed", "Checks if relevant files have changed")
         {
-            Handler = CommandHandler.Create(Execute);
+            Handler = CommandHandler.Create<bool>(Execute);
         }
 
-        private void Execute()
+        private void Execute(bool debug)
         {
+            Log.IsDebug = debug;
+
             var output = Git.RunGit(new AbsoluteDirectoryPath(Environment.CurrentDirectory), "rev-list", "--parents", "--max-count=1", "HEAD").Trim();
 
             var commitShas = output.Split(" ");

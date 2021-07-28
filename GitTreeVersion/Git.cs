@@ -10,9 +10,8 @@ namespace GitTreeVersion
 {
     public static class Git
     {
-        public static bool Debug { get; set; }
-        
-        public static string[] GitNonMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
+        public static string[] GitNonMerges(AbsoluteDirectoryPath workingDirectory, string? range,
+            AbsoluteDirectoryPath[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -31,7 +30,8 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static long? GitNewestCommitUnixTimeSeconds(AbsoluteDirectoryPath workingDirectory, string? range, string[] pathSpecs)
+        public static long? GitNewestCommitUnixTimeSeconds(AbsoluteDirectoryPath workingDirectory, string? range,
+            string[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("log");
@@ -41,7 +41,7 @@ namespace GitTreeVersion
             arguments.Add("--format=%at");
 
             arguments.Add(range ?? "HEAD");
-            
+
             if (pathSpecs.Any())
             {
                 arguments.Add("--");
@@ -58,7 +58,7 @@ namespace GitTreeVersion
 
             return long.Parse(unixTimeSeconds);
         }
-        
+
         public static string[] GitCommits(AbsoluteDirectoryPath workingDirectory, string? range,
             string[] pathSpecs, DateTimeOffset? after = null, DateTimeOffset? before = null)
         {
@@ -75,9 +75,9 @@ namespace GitTreeVersion
             {
                 arguments.Add($"--before={before.Value.ToUnixTimeSeconds()}");
             }
-            
+
             arguments.Add(range ?? "HEAD");
-            
+
             if (pathSpecs.Any())
             {
                 arguments.Add("--");
@@ -94,7 +94,8 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
+        public static string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range,
+            AbsoluteDirectoryPath[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -113,11 +114,13 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static string[] GitFindFiles(AbsoluteDirectoryPath workingDirectory, string pathSpec, bool includeUnstaged = false)
+        public static string[] GitFindFiles(AbsoluteDirectoryPath workingDirectory, string pathSpec,
+            bool includeUnstaged = false)
         {
             if (includeUnstaged)
             {
-                var runGit = RunGit(workingDirectory, "ls-files", "--exclude-standard", "--others", "--cached", "--", pathSpec);
+                var runGit = RunGit(workingDirectory, "ls-files", "--exclude-standard", "--others", "--cached", "--",
+                    pathSpec);
                 return runGit.SplitOutput();
             }
             else
@@ -160,10 +163,7 @@ namespace GitTreeVersion
                 startInfo.ArgumentList.Add(argument);
             }
 
-            if (Debug)
-            {
-                AnsiConsole.MarkupLine($"[grey35]> git {string.Join(" ", startInfo.ArgumentList)}[/]");
-            }
+            Log.Debug($"[grey35]> git {string.Join(" ", startInfo.ArgumentList)}[/]");
 
             var process = Process.Start(startInfo);
 
@@ -171,7 +171,7 @@ namespace GitTreeVersion
             {
                 throw new InvalidOperationException("No process");
             }
-            
+
             var outputBuilder = new StringBuilder();
 
             process.OutputDataReceived += (sender, args) => { outputBuilder.AppendLine(args.Data); };

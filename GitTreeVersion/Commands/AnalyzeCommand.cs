@@ -12,13 +12,14 @@ namespace GitTreeVersion.Commands
     {
         public AnalyzeCommand() : base("analyze", "Analyzes dependencies between project")
         {
-            Handler = CommandHandler.Create<string>(Execute);
+            Handler = CommandHandler.Create<string, bool>(Execute);
 
             AddArgument(new Argument("project"));
         }
 
-        private void Execute(string project)
+        private void Execute(string project, bool debug)
         {
+            Log.IsDebug = debug;
             var projectPath = new AbsoluteFilePath(Path.GetFullPath(project));
             var projectDirectoryPath = projectPath.Parent;
             var tree = new Tree(projectPath.FileName);

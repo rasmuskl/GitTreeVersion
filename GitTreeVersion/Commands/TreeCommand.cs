@@ -13,11 +13,13 @@ namespace GitTreeVersion.Commands
     {
         public TreeCommand() : base("tree", "Render repository tree")
         {
-            Handler = CommandHandler.Create(Execute);
+            Handler = CommandHandler.Create<bool>(Execute);
         }
 
-        private void Execute()
+        private void Execute(bool debug)
         {
+            Log.IsDebug = debug;
+
             var graph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
 
             var rootVersionPath = graph.VersionRootPath;

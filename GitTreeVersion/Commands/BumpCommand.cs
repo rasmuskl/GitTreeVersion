@@ -11,13 +11,14 @@ namespace GitTreeVersion.Commands
     {
         public BumpCommand() : base("bump", "Bump versions")
         {
-            Handler = CommandHandler.Create<VersionTypeOptions>(Execute);
+            Handler = CommandHandler.Create<VersionTypeOptions, bool>(Execute);
 
             AddArgument(new Argument<VersionTypeOptions>("type"));
         }
 
-        private void Execute(VersionTypeOptions type)
+        private void Execute(VersionTypeOptions type, bool debug)
         {
+            Log.IsDebug = debug;
             Console.WriteLine($"Bumping {type}");
 
             var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
