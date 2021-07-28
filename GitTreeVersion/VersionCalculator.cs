@@ -16,23 +16,25 @@ namespace GitTreeVersion
         {
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
 
-            var majorVersionFiles = Git.GitFindFiles(versionRootPath, ":(glob).version/major/*", false);
-            var majorVersionCommits = Git.GitCommits(versionRootPath, null, new [] { ":(glob).version/major/*" });
+            var majorVersionFiles = Git.GitFindFiles(versionRootPath, ":(glob).version/major/*");
 
             foreach (var file in majorVersionFiles)
             {
                 Log.Debug($"Major version file: {file}");
             }
 
+
+            string? range = null;
+            var major = majorVersionFiles.Length;
+            int minor;
+
+            var majorVersionCommits = Git.GitCommits(versionRootPath, null, new [] { ":(glob).version/major/*" });
+
             foreach (var majorVersionCommit in majorVersionCommits)
             {
                 Log.Debug($"Major version commit: {majorVersionCommit}");
             }
-
-            string? range = null;
-            var major = majorVersionFiles.Length;
-            var minor = 0;
-
+            
             if (majorVersionCommits.Any())
             {
                 range = $"{majorVersionCommits.First()}..";
@@ -59,11 +61,11 @@ namespace GitTreeVersion
             }
             else
             {
-                var minorVersionFiles = Git.GitFindFiles(versionRootPath, ":(glob).version/minor/*", false);
+                var minorVersionFiles = Git.GitFindFiles(versionRootPath, ":(glob).version/minor/*");
 
                 foreach (var file in minorVersionFiles)
                 {
-                    Log.Debug($"Minor file: {file}");
+                    Log.Debug($"Minor version file: {file}");
                 }
                 
                 minor = minorVersionFiles.Length;
@@ -71,7 +73,7 @@ namespace GitTreeVersion
 
                 foreach (var commit in minorVersionCommits)
                 {
-                    Log.Debug($"Minor commit: {commit}");
+                    Log.Debug($"Minor version commit: {commit}");
                 }
                 
                 if (minorVersionCommits.Any())
