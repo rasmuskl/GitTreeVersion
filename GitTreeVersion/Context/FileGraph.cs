@@ -135,7 +135,7 @@ namespace GitTreeVersion.Context
                 }
                 else
                 {
-                    throw new InvalidOperationException($"Unknown deployable: {deployableFilePath}");
+                    Log.Warning($"Unknown deployable: {deployableFilePath}");
                 }
             }
 
