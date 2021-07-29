@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using GitTreeVersion.Deployables;
 using GitTreeVersion.Paths;
 
@@ -18,6 +19,7 @@ namespace GitTreeVersion.Context
 
         public AbsoluteDirectoryPath[] VersionRootPaths { get; }
         public Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?> VersionRootParents { get; }
+        public Dictionary<AbsoluteDirectoryPath, VersionConfig> VersionRootConfigs { get; }
 
         public FileGraph(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath versionRootPath)
         {
@@ -29,6 +31,7 @@ namespace GitTreeVersion.Context
 
             var versionRootPaths = new List<AbsoluteDirectoryPath>();
             var versionRootParents = new Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?>();
+            var versionRootConfigs = new Dictionary<AbsoluteDirectoryPath, VersionConfig>();
 
             versionRootPaths.Add(versionRootPath);
             versionRootParents[versionRootPath] = null;
@@ -59,8 +62,22 @@ namespace GitTreeVersion.Context
                 versionRootPaths.Add(rootPath);
             }
 
+            foreach (var rootPath in versionRootPaths)
+            {
+                var filePath = Path.Combine(rootPath.ToString(), ContextResolver.VersionConfigFileName);
+                VersionConfig? versionConfig = null;
+                
+                if (File.Exists(filePath))
+                {
+                    versionConfig = JsonSerializer.Deserialize<VersionConfig>(File.ReadAllText(filePath), JsonOptions.DefaultOptions);
+                }
+
+                versionRootConfigs[rootPath] = versionConfig ?? VersionConfig.Default;
+            }
+
             VersionRootPaths = versionRootPaths.ToArray();
             VersionRootParents = versionRootParents;
+            VersionRootConfigs = versionRootConfigs;
 
             var csprojFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/*.csproj", true);
             var packageJsonFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/package.json", true);
@@ -132,11 +149,11 @@ namespace GitTreeVersion.Context
             var nestedVersionRoots = VersionRootPaths
                 .Where(p => p.IsInSubPathOf(versionRootPath))
                 .ToArray();
-            
+
             var nestedDeployables = GetReachableDeployables(DeployableFilePaths
                     .Where(fp => nestedVersionRoots.Any(fp.IsInSubPathOf)))
-                    .ToArray();
-            
+                .ToArray();
+
             var relevantDirectories = nestedVersionRoots
                 .Concat(nestedDeployables.Select(d => d.Parent))
                 .OrderBy(x => x.Name)
@@ -144,7 +161,7 @@ namespace GitTreeVersion.Context
 
             var paths = new List<AbsoluteDirectoryPath>();
             AbsoluteDirectoryPath? previous = null;
-            
+
             foreach (var relevantDirectory in relevantDirectories)
             {
                 if (previous is not null && relevantDirectory.IsInSubPathOf(previous.Value))
@@ -160,7 +177,7 @@ namespace GitTreeVersion.Context
             {
                 Console.WriteLine($"Relevant path outside repository: {pathOutsideRepository}");
             }
-            
+
             paths.RemoveAll(p => !p.IsInSubPathOf(RepositoryRootPath));
 
             return paths.ToArray();

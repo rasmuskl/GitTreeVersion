@@ -214,12 +214,46 @@ namespace GitTreeVersion.Tests
             // TODO: Determine correct version here
             version.Should().Be(new Version(0, 0, 3));
         }
+        
+        [Fact]
+        public void SemanticVersion_SingleCommit()
+        {
+            var repositoryPath = CreateGitRepository();
 
+            CommitVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersion });
+
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new Version(0, 0, 1));
+        }
+
+        [Fact]
+        public void CalendarVersion_SingleCommit()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
+            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.CalendarVersion });
+            CommitFile(repositoryPath, filePath, commitTime);
+
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new Version(2021, 101, 0));
+        }
+        
         private void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
         {
-            File.WriteAllText(Path.Combine(repositoryPath.ToString(), ContextResolver.VersionConfigFileName), JsonSerializer.Serialize(versionConfig, new JsonSerializerOptions { WriteIndented = true }));
+            WriteVersionConfig(repositoryPath, versionConfig);
             Git.RunGit(repositoryPath, "add", "--all");
             Git.RunGit(repositoryPath, "commit", "--all", "--message", Guid.NewGuid().ToString());
+        }
+
+        private AbsoluteFilePath WriteVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
+        {
+            var filePath = Path.Combine(repositoryPath.ToString(), ContextResolver.VersionConfigFileName);
+            File.WriteAllText(filePath, JsonSerializer.Serialize(versionConfig, JsonOptions.DefaultOptions));
+
+            return new AbsoluteFilePath(filePath);
         }
 
         private static void MergeBranchToMaster(AbsoluteDirectoryPath repositoryPath, string branchName, bool fastForward = false)

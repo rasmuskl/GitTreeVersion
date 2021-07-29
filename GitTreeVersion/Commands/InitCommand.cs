@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using GitTreeVersion.Context;
 
 namespace GitTreeVersion.Commands
@@ -26,9 +27,8 @@ namespace GitTreeVersion.Commands
                 Console.WriteLine($"{ContextResolver.VersionConfigFileName} already exists.");
                 return;
             }
-
-            var jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true, IgnoreNullValues = true};
-            File.WriteAllText(versionConfigPath, JsonSerializer.Serialize(new VersionConfig(), jsonSerializerOptions));
+            
+            File.WriteAllText(versionConfigPath, JsonSerializer.Serialize(new VersionConfig(), JsonOptions.DefaultOptions));
         }
     }
 }

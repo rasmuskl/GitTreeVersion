@@ -7,13 +7,15 @@ namespace GitTreeVersion
 {
     public class VersionCalculator
     {
-        public Version GetVersion(FileGraph graph)
-        {
-            return GetVersion(graph, graph.VersionRootPath);
-        }
-        
+        public Version GetVersion(FileGraph graph) => GetVersion(graph, graph.VersionRootPath);
+
         public Version GetVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
+            if (graph.VersionRootConfigs[versionRootPath].Mode == VersionMode.CalendarVersion)
+            {
+                return GetCalendarVersion(graph, versionRootPath);
+            }
+            
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
 
             var majorVersionFiles = Git.GitFindFiles(versionRootPath, ":(glob).version/major/*");
@@ -22,7 +24,6 @@ namespace GitTreeVersion
             {
                 Log.Debug($"Major version file: {file}");
             }
-
 
             string? range = null;
             var major = majorVersionFiles.Length;
@@ -101,10 +102,12 @@ namespace GitTreeVersion
             
             return new Version(major, minor, patch);
         }
+
+        public Version GetCalendarVersion(FileGraph graph) => GetCalendarVersion(graph, graph.VersionRootPath);
         
-        public Version GetCalendarVersion(FileGraph graph)
+        public Version GetCalendarVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
-            var relevantPaths = graph.GetRelevantPathsForVersionRoot(graph.VersionRootPath);
+            var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
             var pathSpecs = relevantPaths.Select(p => p.ToString()).ToArray();
             
             var newestCommit = Git.GitNewestCommitUnixTimeSeconds(graph.VersionRootPath, null, pathSpecs);
