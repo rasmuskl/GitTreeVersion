@@ -156,7 +156,7 @@ namespace GitTreeVersion.Context
 
             var relevantDirectories = nestedVersionRoots
                 .Concat(nestedDeployables.Select(d => d.Parent))
-                .OrderBy(x => x.Name)
+                .OrderBy(x => x.ToString())
                 .ToArray();
 
             var paths = new List<AbsoluteDirectoryPath>();
@@ -175,7 +175,7 @@ namespace GitTreeVersion.Context
 
             foreach (var pathOutsideRepository in paths.Where(p => !p.IsInSubPathOf(RepositoryRootPath)))
             {
-                Console.WriteLine($"Relevant path outside repository: {pathOutsideRepository}");
+                Log.Warning($"Relevant path outside repository: {pathOutsideRepository}");
             }
 
             paths.RemoveAll(p => !p.IsInSubPathOf(RepositoryRootPath));

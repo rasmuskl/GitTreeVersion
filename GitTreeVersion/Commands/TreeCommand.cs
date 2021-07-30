@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
@@ -19,6 +20,7 @@ namespace GitTreeVersion.Commands
         private void Execute(bool debug)
         {
             Log.IsDebug = debug;
+            var stopwatch = Stopwatch.StartNew();
 
             var graph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
 
@@ -30,6 +32,7 @@ namespace GitTreeVersion.Commands
             AddVersionRootChildren(tree, graph, rootVersionPath, version);
 
             AnsiConsole.Render(tree);
+            Log.Debug($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
 
         private void AddVersionRootChildren(IHasTreeNodes tree, FileGraph graph, AbsoluteDirectoryPath versionRootPath, Version version)
