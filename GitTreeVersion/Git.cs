@@ -131,13 +131,13 @@ namespace GitTreeVersion
                 arguments.Add("--others");
                 arguments.Add("--cached");
             }
-            
+
             if (pathSpecs.Any())
             {
                 arguments.Add("--");
                 arguments.AddRange(pathSpecs);
             }
-            
+
             var output = RunGit(workingDirectory, arguments.ToArray());
             return output.SplitOutput();
         }
@@ -167,7 +167,7 @@ namespace GitTreeVersion
                 FileName = "git",
                 WorkingDirectory = workingDirectory.ToString(),
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = true
             };
 
             foreach (var argument in arguments)

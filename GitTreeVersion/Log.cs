@@ -12,7 +12,7 @@ namespace GitTreeVersion
             {
                 return;
             }
-            
+
             AnsiConsole.MarkupLine(markup);
         }
 
