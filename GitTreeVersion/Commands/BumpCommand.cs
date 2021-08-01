@@ -1,7 +1,6 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.IO;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 
@@ -26,16 +25,16 @@ namespace GitTreeVersion.Commands
             Console.WriteLine($"Version root path: {versionRootPath}");
 
             var bumper = new Bumper();
-            bumper.Bump(versionRootPath, (VersionType)type);
+            bumper.Bump(versionRootPath, (VersionType) type);
         }
 
         private enum VersionTypeOptions
         {
             // ReSharper disable once InconsistentNaming
             major = VersionType.Major,
+
             // ReSharper disable once InconsistentNaming
             minor = VersionType.Minor
         }
     }
 }
- 

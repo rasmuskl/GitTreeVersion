@@ -27,9 +27,9 @@ namespace GitTreeVersion.Commands
 
             var parent1 = commitShas[1];
             var parent2 = commitShas[2];
-            
+
             Console.WriteLine($"Found merge commit with parents {parent1} and {parent2}.");
-            
+
             Console.WriteLine();
             Console.WriteLine("Relevant changed files:");
             Console.WriteLine();

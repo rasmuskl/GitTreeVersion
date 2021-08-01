@@ -6,7 +6,6 @@ using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 using LibGit2Sharp;
 using Xunit;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 using Version = System.Version;
 
 namespace GitTreeVersion.Tests
@@ -27,7 +26,7 @@ namespace GitTreeVersion.Tests
         public void EmptyRepository()
         {
             var repositoryPath = CreateGitRepository();
-            
+
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
             version.Should().Be(new Version(0, 0, 0));
@@ -111,11 +110,11 @@ namespace GitTreeVersion.Tests
         public void CalendarVersioning_TwoCommit()
         {
             var repositoryPath = CreateGitRepository();
-            
+
             var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
             CommitNewFile(repositoryPath, commitTime);
             CommitNewFile(repositoryPath, commitTime.Add(TimeSpan.FromSeconds(5)));
-            
+
             var version = new VersionCalculator().GetCalendarVersion(ContextResolver.GetFileGraph(repositoryPath));
 
             version.Should().Be(new Version(2021, 101, 1));
@@ -128,12 +127,12 @@ namespace GitTreeVersion.Tests
 
             var bumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, bumpFile);
-            
+
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
-        
+
             version.Should().Be(new Version(0, 1, 0));
         }
-        
+
         [Fact]
         public void MajorVersion()
         {
@@ -141,9 +140,9 @@ namespace GitTreeVersion.Tests
 
             var bumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, bumpFile);
-            
+
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
-        
+
             version.Should().Be(new Version(1, 0, 0));
         }
 
@@ -153,13 +152,13 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
 
             var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
-            CommitFile(repositoryPath, minorBumpFile);    
+            CommitFile(repositoryPath, minorBumpFile);
 
             var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
-        
+
             version.Should().Be(new Version(1, 0, 0));
         }
 
@@ -173,12 +172,12 @@ namespace GitTreeVersion.Tests
 
             var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
-            
+
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
-        
+
             version.Should().Be(new Version(1, 1, 0));
         }
-        
+
         [Fact]
         public void AzureDevOpsDetachedHeadState()
         {
@@ -214,13 +213,13 @@ namespace GitTreeVersion.Tests
             // TODO: Determine correct version here
             version.Should().Be(new Version(0, 0, 3));
         }
-        
+
         [Fact]
         public void SemanticVersion_SingleCommit()
         {
             var repositoryPath = CreateGitRepository();
 
-            CommitVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersion });
+            CommitVersionConfig(repositoryPath, new VersionConfig {Mode = VersionMode.SemanticVersion});
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
@@ -233,14 +232,14 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
 
             var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
-            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.CalendarVersion });
+            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig {Mode = VersionMode.CalendarVersion});
             CommitFile(repositoryPath, filePath, commitTime);
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
             version.Should().Be(new Version(2021, 101, 0));
         }
-        
+
         private void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
         {
             WriteVersionConfig(repositoryPath, versionConfig);
@@ -275,10 +274,10 @@ namespace GitTreeVersion.Tests
             File.WriteAllText(fileName, Guid.NewGuid().ToString());
 
             using var repository = new Repository(repositoryPath.ToString());
-            
+
             repository.Index.Add(Path.GetRelativePath(repositoryPath.ToString(), fileName));
             repository.Index.Write();
-            
+
             var signature = new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), commitTime.GetValueOrDefault(DateTimeOffset.UtcNow));
             repository.Commit(Guid.NewGuid().ToString(), signature, signature);
         }
@@ -286,14 +285,14 @@ namespace GitTreeVersion.Tests
         private static void CommitFile(AbsoluteDirectoryPath repositoryPath, AbsoluteFilePath filePath, DateTimeOffset? commitTime = null)
         {
             using var repository = new Repository(repositoryPath.ToString());
-            
+
             repository.Index.Add(Path.GetRelativePath(repositoryPath.ToString(), filePath.ToString()));
             repository.Index.Write();
-            
+
             var signature = new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), commitTime.GetValueOrDefault(DateTimeOffset.UtcNow));
             repository.Commit(Guid.NewGuid().ToString(), signature, signature);
         }
-        
+
         private static AbsoluteDirectoryPath CreateGitRepository()
         {
             var repositoryPath = CreateEmptyDirectory();

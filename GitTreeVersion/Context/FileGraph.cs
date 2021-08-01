@@ -10,17 +10,6 @@ namespace GitTreeVersion.Context
 {
     public class FileGraph
     {
-        public AbsoluteDirectoryPath RepositoryRootPath { get; }
-        public AbsoluteDirectoryPath VersionRootPath { get; }
-
-        public AbsoluteFilePath[] DeployableFilePaths { get; }
-        public Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath> DeployableFileVersionRoots { get; }
-        public Dictionary<AbsoluteFilePath, AbsoluteFilePath[]> DeployableFileDependencies { get; }
-
-        public AbsoluteDirectoryPath[] VersionRootPaths { get; }
-        public Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?> VersionRootParents { get; }
-        public Dictionary<AbsoluteDirectoryPath, VersionConfig> VersionRootConfigs { get; }
-
         public FileGraph(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath versionRootPath)
         {
             RepositoryRootPath = repositoryRootPath;
@@ -36,7 +25,7 @@ namespace GitTreeVersion.Context
             versionRootPaths.Add(versionRootPath);
             versionRootParents[versionRootPath] = null;
 
-            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, new [] { ":(glob)**/version.json" }, true)
+            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, new[] {":(glob)**/version.json"}, true)
                 .Select(Path.GetDirectoryName)
                 .OrderBy(p => p);
 
@@ -66,7 +55,7 @@ namespace GitTreeVersion.Context
             {
                 var filePath = Path.Combine(rootPath.ToString(), ContextResolver.VersionConfigFileName);
                 VersionConfig? versionConfig = null;
-                
+
                 if (File.Exists(filePath))
                 {
                     versionConfig = JsonSerializer.Deserialize<VersionConfig>(File.ReadAllText(filePath), JsonOptions.DefaultOptions);
@@ -79,7 +68,7 @@ namespace GitTreeVersion.Context
             VersionRootParents = versionRootParents;
             VersionRootConfigs = versionRootConfigs;
 
-            var relevantDeployableFiles = Git.GitFindFiles(VersionRootPath, new [] { ":(glob)**/*.csproj", ":(glob)**/package.json" }, true);
+            var relevantDeployableFiles = Git.GitFindFiles(VersionRootPath, new[] {":(glob)**/*.csproj", ":(glob)**/package.json"}, true);
 
             var relevantDeployableFilePaths = relevantDeployableFiles
                 .Select(f => new AbsoluteFilePath(Path.GetFullPath(Path.Combine(VersionRootPath.ToString(), f))));
@@ -90,7 +79,7 @@ namespace GitTreeVersion.Context
             var dotnetDeployableProcessor = new DotnetDeployableProcessor();
 
             var deployableFilePaths = new HashSet<AbsoluteFilePath>();
-            
+
             while (deployableQueue.TryDequeue(out var deployableFilePath))
             {
                 if (deployableFilePaths.Contains(deployableFilePath))
@@ -103,7 +92,7 @@ namespace GitTreeVersion.Context
                     Log.Warning($"File not found: {deployableFilePath}");
                     continue;
                 }
-                
+
                 var fileName = deployableFilePath.FileName;
 
                 if (fileName == "package.json")
@@ -133,7 +122,7 @@ namespace GitTreeVersion.Context
 
                 deployableFilePaths.Add(deployableFilePath);
             }
-            
+
             foreach (var deployableFilePath in deployableFilePaths)
             {
                 var deployableVersionRoot = versionRootPaths
@@ -148,6 +137,17 @@ namespace GitTreeVersion.Context
             DeployableFileDependencies = deployableDependencies;
             DeployableFileVersionRoots = deployableVersionRoots;
         }
+
+        public AbsoluteDirectoryPath RepositoryRootPath { get; }
+        public AbsoluteDirectoryPath VersionRootPath { get; }
+
+        public AbsoluteFilePath[] DeployableFilePaths { get; }
+        public Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath> DeployableFileVersionRoots { get; }
+        public Dictionary<AbsoluteFilePath, AbsoluteFilePath[]> DeployableFileDependencies { get; }
+
+        public AbsoluteDirectoryPath[] VersionRootPaths { get; }
+        public Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?> VersionRootParents { get; }
+        public Dictionary<AbsoluteDirectoryPath, VersionConfig> VersionRootConfigs { get; }
 
         public AbsoluteDirectoryPath[] GetRelevantPathsForVersionRoot(AbsoluteDirectoryPath versionRootPath)
         {

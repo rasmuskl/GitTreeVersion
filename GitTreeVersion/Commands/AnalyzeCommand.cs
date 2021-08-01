@@ -28,7 +28,7 @@ namespace GitTreeVersion.Commands
             {
                 throw new Exception($"File not found: {project}");
             }
-            
+
             AnsiConsole
                 .Status()
                 .Start("Analyzing project...", ctx =>

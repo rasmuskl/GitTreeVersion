@@ -35,7 +35,7 @@ namespace GitTreeVersion.Deployables
                 {
                     continue;
                 }
-                
+
                 list.Add(new AbsoluteFilePath(Path.GetFullPath(Path.Combine(fileInfo.DirectoryName, attribute.Value))));
             }
 

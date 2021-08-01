@@ -15,7 +15,7 @@ namespace GitTreeVersion.Paths
         }
 
         public string FileName => Path.GetFileName(_path);
-        
+
         public AbsoluteDirectoryPath Parent
         {
             get

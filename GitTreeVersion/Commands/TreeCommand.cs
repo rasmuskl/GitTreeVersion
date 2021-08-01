@@ -40,7 +40,7 @@ namespace GitTreeVersion.Commands
             var childDeployables = graph.DeployableFileVersionRoots
                 .Where(p => p.Value == versionRootPath)
                 .Select(x => x.Key);
-            
+
             foreach (var childDeployable in childDeployables)
             {
                 tree.AddNode($"{Path.GetRelativePath(versionRootPath.ToString(), childDeployable.ToString())}  [grey30][[[/][grey54]{version}[/][grey30]]][/]");
@@ -54,7 +54,7 @@ namespace GitTreeVersion.Commands
             var childVersionRoots = graph.VersionRootParents
                 .Where(p => p.Value.HasValue && p.Value.Value == versionRootPath)
                 .Select(x => x.Key);
-            
+
             foreach (var childVersionRoot in childVersionRoots)
             {
                 var childVersion = new VersionCalculator().GetVersion(graph, childVersionRoot);

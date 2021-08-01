@@ -16,14 +16,14 @@ namespace GitTreeVersion.Context
             {
                 throw new InvalidOperationException("Not in a git repository");
             }
-            
+
             var configFilePath = FindFileAbove(workingDirectory, VersionConfigFileName);
 
             if (configFilePath == null)
             {
                 return new FileGraph(repositoryRoot.Value, repositoryRoot.Value);
             }
-            
+
             var versionRootPath = configFilePath.Value.Parent;
             return new FileGraph(repositoryRoot.Value, versionRootPath);
         }
@@ -31,24 +31,24 @@ namespace GitTreeVersion.Context
         private static AbsoluteFilePath? FindFileAbove(AbsoluteDirectoryPath directory, string fileName)
         {
             var filePath = Path.Combine(directory.ToString(), fileName);
-            
+
             if (File.Exists(filePath))
             {
                 return new AbsoluteFilePath(filePath);
             }
-            
+
             if (directory.IsAtRoot)
             {
                 return null;
             }
-            
+
             return FindFileAbove(directory.Parent, fileName);
         }
 
         private static AbsoluteDirectoryPath? FindDirectoryAbove(AbsoluteDirectoryPath directory, string directoryName)
         {
             var directoryPath = Path.Combine(directory.ToString(), directoryName);
-            
+
             if (Directory.Exists(directoryPath))
             {
                 return directory;
