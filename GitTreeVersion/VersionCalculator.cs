@@ -18,7 +18,7 @@ namespace GitTreeVersion
             
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
 
-            var majorVersionFiles = Git.GitFindFiles(versionRootPath, ":(glob).version/major/*");
+            var majorVersionFiles = Git.GitFindFiles(versionRootPath, new [] {":(glob).version/major/*" });
 
             foreach (var file in majorVersionFiles)
             {
@@ -27,13 +27,22 @@ namespace GitTreeVersion
 
             string? range = null;
             var major = majorVersionFiles.Length;
-            int minor;
+            int minor = 0;
 
-            var majorVersionCommits = Git.GitCommits(versionRootPath, null, new [] { ":(glob).version/major/*" });
-
-            foreach (var majorVersionCommit in majorVersionCommits)
+            string[] majorVersionCommits;
+            
+            if (majorVersionFiles.Any())
             {
-                Log.Debug($"Major version commit: {majorVersionCommit}");
+                majorVersionCommits = Git.GitCommits(versionRootPath, null, new [] { ":(glob).version/major/*" });
+
+                foreach (var majorVersionCommit in majorVersionCommits)
+                {
+                    Log.Debug($"Major version commit: {majorVersionCommit}");
+                }
+            }
+            else
+            {
+                majorVersionCommits = Array.Empty<string>();
             }
             
             if (majorVersionCommits.Any())
@@ -62,24 +71,27 @@ namespace GitTreeVersion
             }
             else
             {
-                var minorVersionFiles = Git.GitFindFiles(versionRootPath, ":(glob).version/minor/*");
+                var minorVersionFiles = Git.GitFindFiles(versionRootPath, new [] { ":(glob).version/minor/*" });
 
                 foreach (var file in minorVersionFiles)
                 {
                     Log.Debug($"Minor version file: {file}");
                 }
-                
-                minor = minorVersionFiles.Length;
-                var minorVersionCommits = Git.GitCommits(versionRootPath, null, new [] { ":(glob).version/minor/*" });
 
-                foreach (var commit in minorVersionCommits)
+                if (minorVersionFiles.Any())
                 {
-                    Log.Debug($"Minor version commit: {commit}");
-                }
+                    minor = minorVersionFiles.Length;
+                    var minorVersionCommits = Git.GitCommits(versionRootPath, null, new [] { ":(glob).version/minor/*" });
+
+                    foreach (var commit in minorVersionCommits)
+                    {
+                        Log.Debug($"Minor version commit: {commit}");
+                    }
                 
-                if (minorVersionCommits.Any())
-                {
-                    range = $"{minorVersionCommits.First()}..";
+                    if (minorVersionCommits.Any())
+                    {
+                        range = $"{minorVersionCommits.First()}..";
+                    }
                 }
             }
             
@@ -94,7 +106,7 @@ namespace GitTreeVersion
             // }
 
             var commits = Git.GitCommits(versionRootPath, range, relevantPaths.Select(p => p.ToString()).ToArray());
-
+            
             // Log.Debug($"Non-merges: {nonMerges.Length}");
             // Log.Debug($"Version: 0.{merges.Length}.{nonMerges.Length}");
 

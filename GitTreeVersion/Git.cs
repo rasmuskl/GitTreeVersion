@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using GitTreeVersion.Paths;
-using Spectre.Console;
 
 namespace GitTreeVersion
 {
@@ -84,8 +83,16 @@ namespace GitTreeVersion
                 arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
             }
 
-            var output = RunGit(workingDirectory, arguments.ToArray());
-            return output.SplitOutput();
+            try
+            {
+                var output = RunGit(workingDirectory, arguments.ToArray());
+                return output.SplitOutput();
+            }
+            catch (GitFailedException e) when (e.ErrorOutput is "fatal: bad revision 'HEAD'")
+            {
+                // Empty repository
+                return Array.Empty<string>();
+            }
         }
 
         public static string[] GitLastCommitHashes(AbsoluteDirectoryPath workingDirectory, string pathSpec)
@@ -94,8 +101,7 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range,
-            AbsoluteDirectoryPath[] pathSpecs)
+        public static string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -114,20 +120,26 @@ namespace GitTreeVersion
             return output.SplitOutput();
         }
 
-        public static string[] GitFindFiles(AbsoluteDirectoryPath workingDirectory, string pathSpec,
-            bool includeUnstaged = false)
+        public static string[] GitFindFiles(AbsoluteDirectoryPath workingDirectory, string[] pathSpecs, bool includeUnstaged = false)
         {
+            var arguments = new List<string>();
+            arguments.Add("ls-files");
+
             if (includeUnstaged)
             {
-                var runGit = RunGit(workingDirectory, "ls-files", "--exclude-standard", "--others", "--cached", "--",
-                    pathSpec);
-                return runGit.SplitOutput();
+                arguments.Add("--exclude-standard");
+                arguments.Add("--others");
+                arguments.Add("--cached");
             }
-            else
+            
+            if (pathSpecs.Any())
             {
-                var runGit = RunGit(workingDirectory, "ls-files", "--", pathSpec);
-                return runGit.SplitOutput();
+                arguments.Add("--");
+                arguments.AddRange(pathSpecs);
             }
+            
+            var output = RunGit(workingDirectory, arguments.ToArray());
+            return output.SplitOutput();
         }
 
         public static string[] GitDiffFileNames(AbsoluteDirectoryPath workingDirectory, string? range, string? pathSpec)
@@ -173,18 +185,20 @@ namespace GitTreeVersion
             }
 
             var outputBuilder = new StringBuilder();
+            var errorBuilder = new StringBuilder();
 
-            process.OutputDataReceived += (sender, args) => { outputBuilder.AppendLine(args.Data); };
+            process.OutputDataReceived += (_, args) => { outputBuilder.AppendLine(args.Data); };
+            process.ErrorDataReceived += (_, args) => { errorBuilder.AppendLine(args.Data); };
 
             process.BeginOutputReadLine();
-
-            var error = process.StandardError.ReadToEnd();
+            process.BeginErrorReadLine();
 
             process.WaitForExit();
 
-            if (!string.IsNullOrWhiteSpace(error))
+            var error = errorBuilder.ToString();
+            if (process.ExitCode != 0)
             {
-                Console.WriteLine($"ERROR: {error}");
+                throw new GitFailedException(arguments, error, process.ExitCode);
             }
 
             return outputBuilder.ToString();

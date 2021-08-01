@@ -7,7 +7,7 @@ using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Deployables
 {
-    public class CsprojDeployableProcessor
+    public class DotnetDeployableProcessor
     {
         public AbsoluteFilePath[] GetSourceReferencedDeployablePaths(FileInfo fileInfo)
         {

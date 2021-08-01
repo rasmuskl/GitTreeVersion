@@ -36,7 +36,7 @@ namespace GitTreeVersion.Context
             versionRootPaths.Add(versionRootPath);
             versionRootParents[versionRootPath] = null;
 
-            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, ":(glob)**/version.json", true)
+            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, new [] { ":(glob)**/version.json" }, true)
                 .Select(Path.GetDirectoryName)
                 .OrderBy(p => p);
 
@@ -79,47 +79,40 @@ namespace GitTreeVersion.Context
             VersionRootParents = versionRootParents;
             VersionRootConfigs = versionRootConfigs;
 
-            var csprojFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/*.csproj", true);
-            var packageJsonFiles = Git.GitFindFiles(VersionRootPath, ":(glob)**/package.json", true);
+            var relevantDeployableFiles = Git.GitFindFiles(VersionRootPath, new [] { ":(glob)**/*.csproj", ":(glob)**/package.json" }, true);
 
-            var deployableFilePaths = csprojFiles
-                .Concat(packageJsonFiles)
-                .Select(f => new AbsoluteFilePath(Path.GetFullPath(Path.Combine(VersionRootPath.ToString(), f))))
-                .ToHashSet();
+            var relevantDeployableFilePaths = relevantDeployableFiles
+                .Select(f => new AbsoluteFilePath(Path.GetFullPath(Path.Combine(VersionRootPath.ToString(), f))));
 
             var deployableVersionRoots = new Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath>();
-
-            foreach (var deployableFilePath in deployableFilePaths)
-            {
-                var deployableVersionRoot = versionRootPaths
-                    .Where(p => deployableFilePath.IsInSubPathOf(p))
-                    .OrderByDescending(p => p.PathLength)
-                    .First();
-
-                deployableVersionRoots[deployableFilePath] = deployableVersionRoot;
-            }
-
             var deployableDependencies = new Dictionary<AbsoluteFilePath, AbsoluteFilePath[]>();
-            var deployableQueue = new Queue<AbsoluteFilePath>(deployableFilePaths);
-            var csprojDeployableProcessor = new CsprojDeployableProcessor();
+            var deployableQueue = new Queue<AbsoluteFilePath>(relevantDeployableFilePaths);
+            var dotnetDeployableProcessor = new DotnetDeployableProcessor();
 
+            var deployableFilePaths = new HashSet<AbsoluteFilePath>();
+            
             while (deployableQueue.TryDequeue(out var deployableFilePath))
             {
-                if (!deployableFilePath.Exists)
+                if (deployableFilePaths.Contains(deployableFilePath))
                 {
-                    Console.WriteLine($"File not found: {deployableFilePath}");
                     continue;
                 }
 
+                if (!deployableFilePath.Exists)
+                {
+                    Log.Warning($"File not found: {deployableFilePath}");
+                    continue;
+                }
+                
                 var fileName = deployableFilePath.FileName;
 
                 if (fileName == "package.json")
                 {
                     deployableDependencies[deployableFilePath] = Array.Empty<AbsoluteFilePath>();
                 }
-                else if (deployableFilePath.Extension == ".csproj")
+                else if (deployableFilePath.Extension == ".csproj" || deployableFilePath.Extension == ".vbproj")
                 {
-                    var referencedDeployablePaths = csprojDeployableProcessor.GetSourceReferencedDeployablePaths(new FileInfo(deployableFilePath.ToString()));
+                    var referencedDeployablePaths = dotnetDeployableProcessor.GetSourceReferencedDeployablePaths(new FileInfo(deployableFilePath.ToString()));
                     deployableDependencies[deployableFilePath] = referencedDeployablePaths;
 
                     foreach (var path in referencedDeployablePaths)
@@ -130,13 +123,25 @@ namespace GitTreeVersion.Context
                         }
 
                         deployableQueue.Enqueue(path);
-                        deployableFilePaths.Add(path);
                     }
                 }
                 else
                 {
                     Log.Warning($"Unknown deployable: {deployableFilePath}");
+                    continue;
                 }
+
+                deployableFilePaths.Add(deployableFilePath);
+            }
+            
+            foreach (var deployableFilePath in deployableFilePaths)
+            {
+                var deployableVersionRoot = versionRootPaths
+                    .Where(p => deployableFilePath.IsInSubPathOf(p))
+                    .OrderByDescending(p => p.PathLength)
+                    .First();
+
+                deployableVersionRoots[deployableFilePath] = deployableVersionRoot;
             }
 
             DeployableFilePaths = deployableFilePaths.ToArray();
