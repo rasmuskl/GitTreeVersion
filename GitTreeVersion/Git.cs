@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion
@@ -99,6 +100,28 @@ namespace GitTreeVersion
         {
             var output = RunGit(workingDirectory, "rev-list", "HEAD", "--", pathSpec);
             return output.SplitOutput();
+        }
+
+        public static GitRef? GitCurrentBranch(AbsoluteDirectoryPath workingDirectory)
+        {
+            var output = RunGit(workingDirectory, "branch");
+            var lines = output.SplitOutput();
+
+            var branch = lines.FirstOrDefault(l => l.StartsWith("*"));
+
+            if (branch is null)
+            {
+                return null;
+            }
+            
+            var match = Regex.Match(branch, "(HEAD detached at (?<ref>[^)]*))");
+
+            if (match.Success)
+            {
+                return new GitRef(match.Groups["ref"].Value, true);
+            }
+            
+            return new GitRef(branch.TrimStart(' ', '*'), false);
         }
 
         public static string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)

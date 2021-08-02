@@ -5,8 +5,8 @@ using FluentAssertions;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 using LibGit2Sharp;
+using Semver;
 using Xunit;
-using Version = System.Version;
 
 namespace GitTreeVersion.Tests
 {
@@ -29,7 +29,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(0, 0, 0));
+            version.Should().Be(new SemVersion(0));
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(0, 0, 1));
+            version.Should().Be(new SemVersion(0, 0, 1));
         }
 
         [Fact]
@@ -54,7 +54,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(0, 0, 2));
+            version.Should().Be(new SemVersion(0, 0, 2));
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(0, 0, 3));
+            version.Should().Be(new SemVersion(0, 0, 3));
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(0, 0, 2));
+            version.Should().Be(new SemVersion(0, 0, 2));
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetCalendarVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(2021, 101, 0));
+            version.Should().Be(new SemVersion(2021, 101));
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetCalendarVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(2021, 101, 1));
+            version.Should().Be(new SemVersion(2021, 101, 1));
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(0, 1, 0));
+            version.Should().Be(new SemVersion(0, 1));
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(1, 0, 0));
+            version.Should().Be(new SemVersion(1));
         }
 
         [Fact]
@@ -159,7 +159,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(1, 0, 0));
+            version.Should().Be(new SemVersion(1));
         }
 
         [Fact]
@@ -175,7 +175,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(1, 1, 0));
+            version.Should().Be(new SemVersion(1, 1));
         }
 
         [Fact]
@@ -211,7 +211,7 @@ namespace GitTreeVersion.Tests
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
             // TODO: Determine correct version here
-            version.Should().Be(new Version(0, 0, 3));
+            version.Should().Be(new SemVersion(0, 0, 3));
         }
 
         [Fact]
@@ -223,7 +223,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(0, 0, 1));
+            version.Should().Be(new SemVersion(0, 0, 1));
         }
 
         [Fact]
@@ -237,7 +237,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new Version(2021, 101, 0));
+            version.Should().Be(new SemVersion(2021, 101));
         }
 
         private void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)

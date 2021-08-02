@@ -2,17 +2,18 @@
 using System.Linq;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
+using Semver;
 
 namespace GitTreeVersion
 {
     public class VersionCalculator
     {
-        public Version GetVersion(FileGraph graph)
+        public SemVersion GetVersion(FileGraph graph)
         {
             return GetVersion(graph, graph.VersionRootPath);
         }
 
-        public Version GetVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
+        public SemVersion GetVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
             if (graph.VersionRootConfigs[versionRootPath].Mode == VersionMode.CalendarVersion)
             {
@@ -115,15 +116,15 @@ namespace GitTreeVersion
 
             var patch = commits.Length;
 
-            return new Version(major, minor, patch);
+            return new SemVersion(major, minor, patch);
         }
 
-        public Version GetCalendarVersion(FileGraph graph)
+        public SemVersion GetCalendarVersion(FileGraph graph)
         {
             return GetCalendarVersion(graph, graph.VersionRootPath);
         }
 
-        public Version GetCalendarVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
+        public SemVersion GetCalendarVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
             var pathSpecs = relevantPaths.Select(p => p.ToString()).ToArray();
@@ -153,7 +154,7 @@ namespace GitTreeVersion
 
             Log.Debug($"Commits since: {commits.Length}");
 
-            return new Version(newestCommitTimestamp.Year, int.Parse(newestCommitTimestamp.ToString("Mdd")), commits.Length);
+            return new SemVersion(newestCommitTimestamp.Year, int.Parse(newestCommitTimestamp.ToString("Mdd")), commits.Length);
         }
     }
 }

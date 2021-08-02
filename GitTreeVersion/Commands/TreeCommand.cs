@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
+using Semver;
 using Spectre.Console;
 
 namespace GitTreeVersion.Commands
@@ -35,7 +36,7 @@ namespace GitTreeVersion.Commands
             Log.Debug($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
 
-        private void AddVersionRootChildren(IHasTreeNodes tree, FileGraph graph, AbsoluteDirectoryPath versionRootPath, Version version)
+        private void AddVersionRootChildren(IHasTreeNodes tree, FileGraph graph, AbsoluteDirectoryPath versionRootPath, SemVersion version)
         {
             var childDeployables = graph.DeployableFileVersionRoots
                 .Where(p => p.Value == versionRootPath)
