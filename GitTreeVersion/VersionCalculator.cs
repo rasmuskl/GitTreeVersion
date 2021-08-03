@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 using Semver;
@@ -21,8 +22,8 @@ namespace GitTreeVersion
             }
 
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
-            var prerelease = graph.BuildEnvironment?.GetPrerelease(versionRootPath, relevantPaths);
-            
+            var prerelease = GetPrerelease(graph, versionRootPath, relevantPaths);
+
             var majorVersionFiles = Git.GitFindFiles(versionRootPath, new[] {":(glob).version/major/*"});
 
             foreach (var file in majorVersionFiles)
@@ -123,6 +124,7 @@ namespace GitTreeVersion
         private SemVersion GetCalendarVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
+            var prerelease = GetPrerelease(graph, versionRootPath, relevantPaths);
             var pathSpecs = relevantPaths.Select(p => p.ToString()).ToArray();
 
             var newestCommit = Git.GitNewestCommitUnixTimeSeconds(graph.VersionRootPath, null, pathSpecs);
@@ -150,7 +152,39 @@ namespace GitTreeVersion
 
             Log.Debug($"Commits since: {commits.Length}");
 
-            return new SemVersion(newestCommitTimestamp.Year, int.Parse(newestCommitTimestamp.ToString("Mdd")), commits.Length);
+            return new SemVersion(newestCommitTimestamp.Year, int.Parse(newestCommitTimestamp.ToString("Mdd")), commits.Length, prerelease);
+        }
+
+        private static string? GetPrerelease(FileGraph graph, AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)
+        {
+            var prerelease = graph.BuildEnvironment?.GetPrerelease(versionRootPath, relevantPaths);
+
+            if (!string.IsNullOrWhiteSpace(prerelease))
+            {
+                return prerelease;
+            }
+
+            if (graph.CurrentBranch is { IsDetached: false } branch)
+            {
+                return branch.Name switch
+                {
+                    "main" => null,
+                    "master" => null,
+                    var name => SanitizeBranchName(name),
+                };
+            }
+
+            return null;
+        }
+
+        private static string SanitizeBranchName(string branchName)
+        {
+            branchName = Regex.Replace(branchName, @"[^a-zA-Z0-9.-]", "-");
+            while (branchName.Contains("--"))
+            {
+                branchName = branchName.Replace("--", "-");
+            }
+            return branchName.Trim();
         }
     }
 }

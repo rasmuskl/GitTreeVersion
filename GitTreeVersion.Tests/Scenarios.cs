@@ -154,6 +154,38 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
+        public void NonDefaultBranch()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            CommitNewFile(repositoryPath);
+
+            var branchName = CreateBranch(repositoryPath);
+
+            CommitNewFile(repositoryPath);
+            
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(0, 0, 2, branchName));
+        }
+
+        [Test]
+        public void NonDefaultSlashBranch()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            CommitNewFile(repositoryPath);
+
+            var branchName = CreateBranch(repositoryPath, "feature/12345");
+
+            CommitNewFile(repositoryPath);
+            
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(0, 0, 2, "feature-12345"));
+        }
+        
+        [Test]
         public void AzureDevOpsDetachedHeadState()
         {
             var repositoryPath = CreateGitRepository();
@@ -266,9 +298,9 @@ namespace GitTreeVersion.Tests
             Git.RunGit(repositoryPath, "merge", fastForward ? "--ff" : "--no-ff", branchName);
         }
 
-        private static string CreateBranch(AbsoluteDirectoryPath repositoryPath)
+        private static string CreateBranch(AbsoluteDirectoryPath repositoryPath, string? branchName = null)
         {
-            var branchName = Guid.NewGuid().ToString();
+            branchName ??= Guid.NewGuid().ToString();
             Git.RunGit(repositoryPath, "checkout", "-b", branchName);
             return branchName;
         }
