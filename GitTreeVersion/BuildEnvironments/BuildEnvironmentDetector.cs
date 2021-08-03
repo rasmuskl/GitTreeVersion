@@ -1,7 +1,6 @@
-﻿using System;
-using Spectre.Console;
+﻿using Spectre.Console;
 
-namespace GitTreeVersion.Context
+namespace GitTreeVersion.BuildEnvironments
 {
     public class BuildEnvironmentDetector
     {
@@ -21,19 +20,6 @@ namespace GitTreeVersion.Context
             }
 
             return null;
-        }
-    }
-
-    public interface IEnvironmentAccessor
-    {
-        string? GetEnvironmentVariable(string variable);
-    }
-
-    public class DefaultEnvironmentAccessor : IEnvironmentAccessor
-    {
-        public string? GetEnvironmentVariable(string variable)
-        {
-            return Environment.GetEnvironmentVariable(variable);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using FluentAssertions;
+using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 using LibGit2Sharp;

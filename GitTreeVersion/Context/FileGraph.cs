@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Deployables;
 using GitTreeVersion.Paths;
 
@@ -208,34 +209,6 @@ namespace GitTreeVersion.Context
                     yield return dependencyPath;
                 }
             }
-        }
-    }
-
-    public interface IBuildEnvironment
-    {
-        string? GetPrerelease(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths);
-    }
-
-    public class AzureDevOpsBuildEnvironment : IBuildEnvironment
-    {
-        private readonly IEnvironmentAccessor _environmentAccessor;
-
-        public AzureDevOpsBuildEnvironment(IEnvironmentAccessor environmentAccessor)
-        {
-            _environmentAccessor = environmentAccessor;
-        }
-        
-        public string? GetPrerelease(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)
-        {
-            var pullRequestId = _environmentAccessor.GetEnvironmentVariable("SYSTEM_PULLREQUEST_PULLREQUESTID");
-
-            if (string.IsNullOrWhiteSpace(pullRequestId))
-            {
-                return null;
-            }
-
-            var branchCommits = Git.GitCommits(versionRootPath, "HEAD^1..HEAD^2", relevantPaths.Select(p => p.ToString()).ToArray());
-            return $"PullRequest.{pullRequestId}.{branchCommits.Length}";
         }
     }
 }
