@@ -189,29 +189,39 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath);
 
-            var currentCommit = Git.RunGit(repositoryPath, "rev-parse", branchName).Trim();
-
-            // Source: https://stackoverflow.com/a/42634501
-            Git.RunGit(repositoryPath, "update-ref", "refs/pull/42/pull", currentCommit);
-            Git.RunGit(repositoryPath, "checkout", "master");
-            Git.RunGit(repositoryPath, "merge", "--no-ff", "refs/pull/42/pull");
-            Git.RunGit(repositoryPath, "update-ref", "refs/pull/42/merge", "HEAD");
-            Git.RunGit(repositoryPath, "checkout", "refs/pull/42/merge");
-
-            // git status at this point gives: 
-            //
-            // (local)
-            // HEAD detached at refs/pull/42/merge
-            // nothing to commit, working tree clean
-            //
-            // (Azure DevOps)
-            // HEAD detached at pull/119/merge
-            // nothing to commit, working tree clean
+            SimulateAzureDevOpsPullRequest(repositoryPath, branchName);
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
             // TODO: Determine correct version here
             version.Should().Be(new SemVersion(0, 0, 3));
+        }
+
+        private static void SimulateAzureDevOpsPullRequest(AbsoluteDirectoryPath repositoryPath, string branchName)
+        {
+            var currentCommit = Git.RunGit(repositoryPath, "rev-parse", branchName).Trim();
+
+            var pullRef = "pull/42/pull";
+            var mergeRef = "pull/42/merge";
+            Environment.SetEnvironmentVariable("TF_BUILD", "True");
+            Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", $"refs/{mergeRef}");
+
+            // Source: https://stackoverflow.com/a/42634501
+            Git.RunGit(repositoryPath, "update-ref", pullRef, currentCommit);
+            Git.RunGit(repositoryPath, "checkout", "master");
+            Git.RunGit(repositoryPath, "merge", "--no-ff", pullRef);
+            Git.RunGit(repositoryPath, "update-ref", mergeRef, "HEAD");
+            Git.RunGit(repositoryPath, "checkout", mergeRef);
+            
+            // git status at this point gives: 
+            //
+            // (local)
+            // HEAD detached at pull/42/merge
+            // nothing to commit, working tree clean
+            //
+            // (Azure DevOps)
+            // HEAD detached at pull/119/merge
+            // nothing to commit, working tree clean
         }
 
         [Test]
