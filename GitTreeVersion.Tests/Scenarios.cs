@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using FluentAssertions;
@@ -72,7 +73,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new SemVersion(0, 0, 3));
+            version.Should().Be(new SemVersion(0, 0, 2));
         }
 
         [Test]
@@ -91,33 +92,6 @@ namespace GitTreeVersion.Tests
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
             version.Should().Be(new SemVersion(0, 0, 2));
-        }
-
-        [Test]
-        public void CalendarVersioning_SingleCommit()
-        {
-            var repositoryPath = CreateGitRepository();
-
-            var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
-            CommitNewFile(repositoryPath, commitTime);
-
-            var version = new VersionCalculator().GetCalendarVersion(ContextResolver.GetFileGraph(repositoryPath));
-
-            version.Should().Be(new SemVersion(2021, 101));
-        }
-
-        [Test]
-        public void CalendarVersioning_TwoCommit()
-        {
-            var repositoryPath = CreateGitRepository();
-
-            var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
-            CommitNewFile(repositoryPath, commitTime);
-            CommitNewFile(repositoryPath, commitTime.Add(TimeSpan.FromSeconds(5)));
-
-            var version = new VersionCalculator().GetCalendarVersion(ContextResolver.GetFileGraph(repositoryPath));
-
-            version.Should().Be(new SemVersion(2021, 101, 1));
         }
 
         [Test]
@@ -189,22 +163,24 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath);
 
-            SimulateAzureDevOpsPullRequest(repositoryPath, branchName);
+            var environmentAccessor = SimulateAzureDevOpsPullRequest(repositoryPath, branchName, 42);
+            var buildEnvironmentDetector = new BuildEnvironmentDetector(environmentAccessor);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath, buildEnvironmentDetector));
 
-            // TODO: Determine correct version here
-            version.Should().Be(new SemVersion(0, 0, 3));
+            version.Should().Be(new SemVersion(0, 0, 2, "PullRequest.42.1"));
         }
 
-        private static void SimulateAzureDevOpsPullRequest(AbsoluteDirectoryPath repositoryPath, string branchName)
+        private static IEnvironmentAccessor SimulateAzureDevOpsPullRequest(AbsoluteDirectoryPath repositoryPath, string branchName, int pullRequestId)
         {
+            var environmentVariables = new Dictionary<string, string?>();
+
             var currentCommit = Git.RunGit(repositoryPath, "rev-parse", branchName).Trim();
 
-            var pullRef = "pull/42/pull";
-            var mergeRef = "pull/42/merge";
-            Environment.SetEnvironmentVariable("TF_BUILD", "True");
-            Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", $"refs/{mergeRef}");
+            var pullRef = $"pull/{pullRequestId}/pull";
+            var mergeRef = $"pull/{pullRequestId}/merge";
+            environmentVariables.Add("TF_BUILD", "True");
+            environmentVariables.Add("SYSTEM_PULLREQUEST_PULLREQUESTID", pullRequestId.ToString());
 
             // Source: https://stackoverflow.com/a/42634501
             Git.RunGit(repositoryPath, "update-ref", pullRef, currentCommit);
@@ -219,9 +195,11 @@ namespace GitTreeVersion.Tests
             // HEAD detached at pull/42/merge
             // nothing to commit, working tree clean
             //
-            // (Azure DevOps)
-            // HEAD detached at pull/119/merge
+            // (Azure Pipelines)
+            // HEAD detached at pull/42/merge
             // nothing to commit, working tree clean
+
+            return new DictionaryEnvironmentAccessor(environmentVariables);
         }
 
         [Test]
@@ -237,7 +215,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void CalendarVersion_SingleCommit()
+        public void CalendarVersioning_SingleCommit()
         {
             var repositoryPath = CreateGitRepository();
 
@@ -250,6 +228,22 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(2021, 101));
         }
 
+        [Test]
+        public void CalendarVersioning_TwoCommit()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
+            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig {Mode = VersionMode.CalendarVersion});
+            CommitFile(repositoryPath, filePath, commitTime);
+
+            CommitNewFile(repositoryPath, commitTime.Add(TimeSpan.FromSeconds(5)));
+
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(2021, 101, 1));
+        }
+        
         private void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
         {
             WriteVersionConfig(repositoryPath, versionConfig);

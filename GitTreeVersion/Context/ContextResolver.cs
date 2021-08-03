@@ -8,7 +8,7 @@ namespace GitTreeVersion.Context
     {
         public const string VersionConfigFileName = "version.json";
 
-        public static FileGraph GetFileGraph(AbsoluteDirectoryPath workingDirectory)
+        public static FileGraph GetFileGraph(AbsoluteDirectoryPath workingDirectory, BuildEnvironmentDetector? buildEnvironmentDetector = null)
         {
             var repositoryRoot = FindDirectoryAbove(workingDirectory, ".git");
 
@@ -21,11 +21,11 @@ namespace GitTreeVersion.Context
 
             if (configFilePath == null)
             {
-                return new FileGraph(repositoryRoot.Value, repositoryRoot.Value);
+                return new FileGraph(repositoryRoot.Value, repositoryRoot.Value, buildEnvironmentDetector);
             }
 
             var versionRootPath = configFilePath.Value.Parent;
-            return new FileGraph(repositoryRoot.Value, versionRootPath);
+            return new FileGraph(repositoryRoot.Value, versionRootPath, buildEnvironmentDetector);
         }
 
         private static AbsoluteFilePath? FindFileAbove(AbsoluteDirectoryPath directory, string fileName)

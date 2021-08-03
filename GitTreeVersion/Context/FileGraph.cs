@@ -10,13 +10,14 @@ namespace GitTreeVersion.Context
 {
     public class FileGraph
     {
-        public FileGraph(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath versionRootPath)
+        public FileGraph(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath versionRootPath, BuildEnvironmentDetector? buildEnvironmentDetector)
         {
             RepositoryRootPath = repositoryRootPath;
             VersionRootPath = versionRootPath;
 
             CurrentBranch = Git.GitCurrentBranch(repositoryRootPath);
-
+            BuildEnvironment = (buildEnvironmentDetector ?? new BuildEnvironmentDetector()).GetBuildEnvironment();
+            
             var rootStack = new Stack<AbsoluteDirectoryPath>();
             rootStack.Push(versionRootPath);
 
@@ -141,6 +142,7 @@ namespace GitTreeVersion.Context
         }
 
         public GitRef? CurrentBranch { get; }
+        public IBuildEnvironment? BuildEnvironment { get; }
         public AbsoluteDirectoryPath RepositoryRootPath { get; }
         public AbsoluteDirectoryPath VersionRootPath { get; }
         public AbsoluteFilePath[] DeployableFilePaths { get; }
@@ -206,6 +208,34 @@ namespace GitTreeVersion.Context
                     yield return dependencyPath;
                 }
             }
+        }
+    }
+
+    public interface IBuildEnvironment
+    {
+        string? GetPrerelease(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths);
+    }
+
+    public class AzureDevOpsBuildEnvironment : IBuildEnvironment
+    {
+        private readonly IEnvironmentAccessor _environmentAccessor;
+
+        public AzureDevOpsBuildEnvironment(IEnvironmentAccessor environmentAccessor)
+        {
+            _environmentAccessor = environmentAccessor;
+        }
+        
+        public string? GetPrerelease(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)
+        {
+            var pullRequestId = _environmentAccessor.GetEnvironmentVariable("SYSTEM_PULLREQUEST_PULLREQUESTID");
+
+            if (string.IsNullOrWhiteSpace(pullRequestId))
+            {
+                return null;
+            }
+
+            var branchCommits = Git.GitCommits(versionRootPath, "HEAD^1..HEAD^2", relevantPaths.Select(p => p.ToString()).ToArray());
+            return $"PullRequest.{pullRequestId}.{branchCommits.Length}";
         }
     }
 }

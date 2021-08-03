@@ -17,6 +17,7 @@ namespace GitTreeVersion
             arguments.Add("rev-list");
             arguments.Add("--no-merges");
             arguments.Add("--full-history");
+            arguments.Add("--first-parent");
 
             arguments.Add(range ?? "HEAD");
 
@@ -65,6 +66,7 @@ namespace GitTreeVersion
             var arguments = new List<string>();
             arguments.Add("rev-list");
             arguments.Add("--full-history");
+            arguments.Add("--first-parent");
 
             if (after is not null)
             {
@@ -130,6 +132,7 @@ namespace GitTreeVersion
             arguments.Add("rev-list");
             arguments.Add("--merges");
             arguments.Add("--full-history");
+            arguments.Add("--first-parent");
 
             arguments.Add(range ?? "HEAD");
 

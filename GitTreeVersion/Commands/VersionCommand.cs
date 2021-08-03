@@ -12,14 +12,12 @@ namespace GitTreeVersion.Commands
     {
         public VersionCommand() : base("version", "Versions the thing")
         {
-            Handler = CommandHandler.Create<bool, bool, bool>(Execute);
-
-            AddOption(new Option<bool>("--calver"));
+            Handler = CommandHandler.Create<bool, bool>(Execute);
 
             AddOption(new Option<bool>("--directory-build-props"));
         }
 
-        private void Execute(bool directoryBuildProps, bool calver, bool debug)
+        private void Execute(bool directoryBuildProps, bool debug)
         {
             Log.IsDebug = debug;
 
@@ -37,9 +35,7 @@ namespace GitTreeVersion.Commands
             // var range = $"{lastCommitHashes.Last()}..";
 
             var versionCalculator = new VersionCalculator();
-            var version = calver
-                ? versionCalculator.GetCalendarVersion(repositoryContext)
-                : versionCalculator.GetVersion(repositoryContext);
+            var version = versionCalculator.GetVersion(repositoryContext);
 
             if (directoryBuildProps)
             {

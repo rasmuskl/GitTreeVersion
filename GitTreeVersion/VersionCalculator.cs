@@ -21,7 +21,8 @@ namespace GitTreeVersion
             }
 
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
-
+            var prerelease = graph.BuildEnvironment?.GetPrerelease(versionRootPath, relevantPaths);
+            
             var majorVersionFiles = Git.GitFindFiles(versionRootPath, new[] {":(glob).version/major/*"});
 
             foreach (var file in majorVersionFiles)
@@ -116,15 +117,10 @@ namespace GitTreeVersion
 
             var patch = commits.Length;
 
-            return new SemVersion(major, minor, patch);
+            return new SemVersion(major, minor, patch, prerelease);
         }
 
-        public SemVersion GetCalendarVersion(FileGraph graph)
-        {
-            return GetCalendarVersion(graph, graph.VersionRootPath);
-        }
-
-        public SemVersion GetCalendarVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
+        private SemVersion GetCalendarVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
             var pathSpecs = relevantPaths.Select(p => p.ToString()).ToArray();
