@@ -22,7 +22,7 @@ jobs:
         dotnet-version: 5.0.x
     
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore Source
 
     - name: Version
       run: dotnet run --project Source/GitTreeVersion -- version --directory-build-props
