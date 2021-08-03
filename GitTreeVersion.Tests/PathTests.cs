@@ -2,13 +2,13 @@
 using System.IO;
 using FluentAssertions;
 using GitTreeVersion.Paths;
-using Xunit;
+using NUnit.Framework;
 
 namespace GitTreeVersion.Tests
 {
     public class PathTests
     {
-        [Fact]
+        [Test]
         public void IsInSubPathOf_File_True()
         {
             var directoryPath = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz/"));
@@ -17,7 +17,7 @@ namespace GitTreeVersion.Tests
             filePath.IsInSubPathOf(directoryPath).Should().BeTrue();
         }
 
-        [Fact]
+        [Test]
         public void IsInSubPathOf_File_False()
         {
             var parentPath = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz/"));
@@ -26,7 +26,7 @@ namespace GitTreeVersion.Tests
             filePath.IsInSubPathOf(parentPath).Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void IsInSubPathOf_Directory_True()
         {
             var parentPath = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz"));
@@ -35,7 +35,7 @@ namespace GitTreeVersion.Tests
             childPath.IsInSubPathOf(parentPath).Should().BeTrue();
         }
 
-        [Fact]
+        [Test]
         public void IsInSubPathOf_Directory_False()
         {
             var path1 = new AbsoluteDirectoryPath(Path.Combine(Environment.CurrentDirectory, "xyz"));

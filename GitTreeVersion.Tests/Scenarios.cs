@@ -5,14 +5,14 @@ using FluentAssertions;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 using LibGit2Sharp;
+using NUnit.Framework;
 using Semver;
-using Xunit;
 
 namespace GitTreeVersion.Tests
 {
     public class Scenarios
     {
-        [Fact]
+        [Test]
         public void NonRepository()
         {
             var repositoryPath = CreateEmptyDirectory();
@@ -22,7 +22,7 @@ namespace GitTreeVersion.Tests
             action.Should().Throw<InvalidOperationException>();
         }
 
-        [Fact]
+        [Test]
         public void EmptyRepository()
         {
             var repositoryPath = CreateGitRepository();
@@ -32,7 +32,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(0));
         }
 
-        [Fact]
+        [Test]
         public void SingleCommit()
         {
             var repositoryPath = CreateGitRepository();
@@ -44,7 +44,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(0, 0, 1));
         }
 
-        [Fact]
+        [Test]
         public void TwoCommits()
         {
             var repositoryPath = CreateGitRepository();
@@ -57,7 +57,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(0, 0, 2));
         }
 
-        [Fact]
+        [Test]
         public void SingleMergeCommitNoFastForward()
         {
             var repositoryPath = CreateGitRepository();
@@ -75,7 +75,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(0, 0, 3));
         }
 
-        [Fact]
+        [Test]
         public void SingleMergeCommitFastForward()
         {
             var repositoryPath = CreateGitRepository();
@@ -93,7 +93,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(0, 0, 2));
         }
 
-        [Fact]
+        [Test]
         public void CalendarVersioning_SingleCommit()
         {
             var repositoryPath = CreateGitRepository();
@@ -106,7 +106,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(2021, 101));
         }
 
-        [Fact]
+        [Test]
         public void CalendarVersioning_TwoCommit()
         {
             var repositoryPath = CreateGitRepository();
@@ -120,7 +120,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(2021, 101, 1));
         }
 
-        [Fact]
+        [Test]
         public void MinorVersion()
         {
             var repositoryPath = CreateGitRepository();
@@ -133,7 +133,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(0, 1));
         }
 
-        [Fact]
+        [Test]
         public void MajorVersion()
         {
             var repositoryPath = CreateGitRepository();
@@ -146,7 +146,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(1));
         }
 
-        [Fact]
+        [Test]
         public void MinorThenMajorVersion()
         {
             var repositoryPath = CreateGitRepository();
@@ -162,7 +162,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(1));
         }
 
-        [Fact]
+        [Test]
         public void MajorThenMinorVersion()
         {
             var repositoryPath = CreateGitRepository();
@@ -178,7 +178,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(1, 1));
         }
 
-        [Fact]
+        [Test]
         public void AzureDevOpsDetachedHeadState()
         {
             var repositoryPath = CreateGitRepository();
@@ -214,7 +214,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(0, 0, 3));
         }
 
-        [Fact]
+        [Test]
         public void SemanticVersion_SingleCommit()
         {
             var repositoryPath = CreateGitRepository();
@@ -226,7 +226,7 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(0, 0, 1));
         }
 
-        [Fact]
+        [Test]
         public void CalendarVersion_SingleCommit()
         {
             var repositoryPath = CreateGitRepository();
