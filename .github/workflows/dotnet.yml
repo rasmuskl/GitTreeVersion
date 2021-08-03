@@ -25,7 +25,7 @@ jobs:
       run: dotnet restore
 
     - name: Version
-      run: dotnet run --project GitTreeVersion -- version --directory-build-props
+      run: dotnet run --project Source/GitTreeVersion -- version --directory-build-props
 
     - name: Build
       run: dotnet build --no-restore
@@ -44,4 +44,4 @@ jobs:
     - name: NuGet push
       env:
         APIKEY: ${{ secrets.GitTreeVersionNuGetKey }}
-      run: dotnet nuget push GitTreeVersion/bin/Release/GitTreeVersion.*.nupkg --api-key $APIKEY --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push Source/GitTreeVersion/bin/Release/GitTreeVersion.*.nupkg --api-key $APIKEY --source https://api.nuget.org/v3/index.json
