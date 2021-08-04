@@ -9,11 +9,11 @@ namespace GitTreeVersion.Deployables
 {
     public class DotnetDeployableProcessor
     {
-        public AbsoluteFilePath[] GetSourceReferencedDeployablePaths(FileInfo fileInfo)
+        public AbsoluteFilePath[] GetSourceReferencedDeployablePaths(AbsoluteFilePath filePath)
         {
-            var document = XDocument.Load(fileInfo.FullName);
+            var document = XDocument.Load(filePath.ToString());
 
-            if (fileInfo.DirectoryName == null)
+            if (filePath.Parent.IsAtRoot)
             {
                 return Array.Empty<AbsoluteFilePath>();
             }
@@ -36,7 +36,7 @@ namespace GitTreeVersion.Deployables
                     continue;
                 }
 
-                list.Add(new AbsoluteFilePath(new FileInfo(Path.Combine(fileInfo.DirectoryName, attribute.Value)).FullName));
+                list.Add(filePath.Parent.CombineToFile(attribute.Value));
             }
 
             return list.ToArray();

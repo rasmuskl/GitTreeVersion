@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace GitTreeVersion.Paths
 {
@@ -11,6 +12,12 @@ namespace GitTreeVersion.Paths
         {
             Debug.Assert(Path.IsPathRooted(path));
             _path = path;
+        }
+
+        public AbsoluteFilePath CombineToFile(string relativePath)
+        {
+            var filePath = Path.Combine(new[] {_path}.Concat(relativePath.Split('/', '\\')).ToArray());
+            return new AbsoluteFilePath(filePath);
         }
 
         public AbsoluteDirectoryPath Parent

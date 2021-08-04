@@ -75,7 +75,7 @@ namespace GitTreeVersion.Context
             var relevantDeployableFiles = Git.GitFindFiles(VersionRootPath, new[] {":(glob)**/*.csproj", ":(glob)**/package.json"}, true);
 
             var relevantDeployableFilePaths = relevantDeployableFiles
-                .Select(f => new AbsoluteFilePath(new FileInfo(Path.Combine(VersionRootPath.ToString(), f)).FullName));
+                .Select(f => VersionRootPath.CombineToFile(f));
 
             var deployableVersionRoots = new Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath>();
             var deployableDependencies = new Dictionary<AbsoluteFilePath, AbsoluteFilePath[]>();
@@ -105,7 +105,7 @@ namespace GitTreeVersion.Context
                 }
                 else if (deployableFilePath.Extension == ".csproj" || deployableFilePath.Extension == ".vbproj")
                 {
-                    var referencedDeployablePaths = dotnetDeployableProcessor.GetSourceReferencedDeployablePaths(new FileInfo(deployableFilePath.ToString()));
+                    var referencedDeployablePaths = dotnetDeployableProcessor.GetSourceReferencedDeployablePaths(deployableFilePath);
                     deployableDependencies[deployableFilePath] = referencedDeployablePaths;
 
                     foreach (var path in referencedDeployablePaths)
