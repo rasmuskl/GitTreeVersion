@@ -36,10 +36,7 @@ namespace GitTreeVersion.Deployables
                     continue;
                 }
 
-                Console.WriteLine("Adding "+attribute.Value);
                 list.Add(filePath.Parent.CombineToFile(attribute.Value));
-                Console.WriteLine("Added "+filePath.Parent.CombineToFile(attribute.Value));
-
             }
 
             return list.ToArray();
