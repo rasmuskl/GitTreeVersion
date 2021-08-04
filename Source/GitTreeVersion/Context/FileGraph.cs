@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -40,7 +41,7 @@ namespace GitTreeVersion.Context
                     continue;
                 }
 
-                var rootPath = new AbsoluteDirectoryPath(Path.Combine(VersionRootPath.ToString(), versionDirectoryPath));
+                var rootPath = VersionRootPath.CombineToDirectory(versionDirectoryPath);
 
                 var potentialParent = rootStack.Peek();
 
@@ -57,12 +58,12 @@ namespace GitTreeVersion.Context
 
             foreach (var rootPath in versionRootPaths)
             {
-                var filePath = Path.Combine(rootPath.ToString(), ContextResolver.VersionConfigFileName);
+                var filePath = rootPath.CombineToFile(ContextResolver.VersionConfigFileName);
                 VersionConfig? versionConfig = null;
 
-                if (File.Exists(filePath))
+                if (filePath.Exists)
                 {
-                    versionConfig = JsonSerializer.Deserialize<VersionConfig>(File.ReadAllText(filePath), JsonOptions.DefaultOptions);
+                    versionConfig = JsonSerializer.Deserialize<VersionConfig>(File.ReadAllText(filePath.ToString()), JsonOptions.DefaultOptions);
                 }
 
                 versionRootConfigs[rootPath] = versionConfig ?? VersionConfig.Default;

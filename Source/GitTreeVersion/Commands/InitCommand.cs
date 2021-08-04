@@ -4,6 +4,7 @@ using System.CommandLine.Invocation;
 using System.IO;
 using System.Text.Json;
 using GitTreeVersion.Context;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Commands
 {
@@ -18,16 +19,16 @@ namespace GitTreeVersion.Commands
         {
             Log.IsDebug = debug;
 
-            var workingDirectory = Environment.CurrentDirectory;
-            var versionConfigPath = Path.Combine(workingDirectory, ContextResolver.VersionConfigFileName);
+            var workingDirectory = new AbsoluteDirectoryPath(Environment.CurrentDirectory);
+            var versionConfigPath = workingDirectory.CombineToFile(ContextResolver.VersionConfigFileName);
 
-            if (File.Exists(versionConfigPath))
+            if (versionConfigPath.Exists)
             {
                 Console.WriteLine($"{ContextResolver.VersionConfigFileName} already exists.");
                 return;
             }
 
-            File.WriteAllText(versionConfigPath, JsonSerializer.Serialize(new VersionConfig(), JsonOptions.DefaultOptions));
+            File.WriteAllText(versionConfigPath.ToString(), JsonSerializer.Serialize(new VersionConfig(), JsonOptions.DefaultOptions));
         }
     }
 }

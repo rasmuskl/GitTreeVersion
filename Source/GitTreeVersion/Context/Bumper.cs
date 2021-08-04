@@ -8,11 +8,11 @@ namespace GitTreeVersion.Context
     {
         public AbsoluteFilePath Bump(AbsoluteDirectoryPath versionRootPath, VersionType versionType)
         {
-            var versionBumpDirectoryPath = Path.Combine(versionRootPath.ToString(), ".version", versionType.ToString().ToLowerInvariant());
-            var versionBumpFilePath = Path.Combine(versionBumpDirectoryPath, DateTime.UtcNow.ToString("yyyyMMddHHmmssff"));
-            Directory.CreateDirectory(versionBumpDirectoryPath);
-            File.WriteAllText(versionBumpFilePath, string.Empty);
-            return new AbsoluteFilePath(versionBumpFilePath);
+            var versionBumpDirectoryPath = versionRootPath.CombineToDirectory(".version", versionType.ToString().ToLowerInvariant());
+            var versionBumpFilePath = versionBumpDirectoryPath.CombineToFile(DateTime.UtcNow.ToString("yyyyMMddHHmmssff"));
+            Directory.CreateDirectory(versionBumpDirectoryPath.ToString());
+            File.WriteAllText(versionBumpFilePath.ToString(), string.Empty);
+            return versionBumpFilePath;
         }
     }
 

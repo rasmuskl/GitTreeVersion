@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -7,6 +8,7 @@ namespace GitTreeVersion.Paths
     public readonly struct AbsoluteDirectoryPath
     {
         private readonly string _path;
+        private static readonly char[] PathSeparators = new [] {'/', '\\'};
 
         public AbsoluteDirectoryPath(string path)
         {
@@ -14,10 +16,26 @@ namespace GitTreeVersion.Paths
             _path = path;
         }
 
-        public AbsoluteFilePath CombineToFile(string relativePath)
+        public AbsoluteFilePath CombineToFile(params string[] relativePaths)
         {
-            var filePath = Path.Combine(new[] {_path}.Concat(relativePath.Split('/', '\\')).ToArray());
+            var paths = new[] {_path}
+                .Concat(relativePaths
+                    .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
+                .ToArray();
+
+            var filePath = Path.GetFullPath(Path.Combine(paths));
             return new AbsoluteFilePath(filePath);
+        }
+
+        public AbsoluteDirectoryPath CombineToDirectory(params string[] relativePaths)
+        {
+            var paths = new[] {_path}
+                .Concat(relativePaths
+                    .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
+                .ToArray();
+
+            var filePath = Path.GetFullPath(Path.Combine(paths));
+            return new AbsoluteDirectoryPath(filePath);
         }
 
         public AbsoluteDirectoryPath Parent
@@ -38,6 +56,7 @@ namespace GitTreeVersion.Paths
         public bool IsAtRoot => Path.GetDirectoryName(_path) == null;
         public int PathLength => _path.Length;
         public string Name => Path.GetFileName(_path);
+        public bool Exists => Directory.Exists(_path);
 
         public override string ToString()
         {

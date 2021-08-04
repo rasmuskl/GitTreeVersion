@@ -11,7 +11,7 @@ namespace GitTreeVersion.Context
 
         public static FileGraph GetFileGraph(AbsoluteDirectoryPath workingDirectory, BuildEnvironmentDetector? buildEnvironmentDetector = null)
         {
-            var repositoryRoot = FindDirectoryAbove(workingDirectory, ".git");
+            var repositoryRoot = FindDirectoryAboveContaining(workingDirectory, ".git");
 
             if (repositoryRoot is null)
             {
@@ -31,11 +31,11 @@ namespace GitTreeVersion.Context
 
         private static AbsoluteFilePath? FindFileAbove(AbsoluteDirectoryPath directory, string fileName)
         {
-            var filePath = Path.Combine(directory.ToString(), fileName);
+            var filePath = directory.CombineToFile(fileName);
 
-            if (File.Exists(filePath))
+            if (filePath.Exists)
             {
-                return new AbsoluteFilePath(filePath);
+                return filePath;
             }
 
             if (directory.IsAtRoot)
@@ -46,11 +46,11 @@ namespace GitTreeVersion.Context
             return FindFileAbove(directory.Parent, fileName);
         }
 
-        private static AbsoluteDirectoryPath? FindDirectoryAbove(AbsoluteDirectoryPath directory, string directoryName)
+        private static AbsoluteDirectoryPath? FindDirectoryAboveContaining(AbsoluteDirectoryPath directory, string directoryName)
         {
-            var directoryPath = Path.Combine(directory.ToString(), directoryName);
+            var directoryPath = directory.CombineToDirectory(directoryName);
 
-            if (Directory.Exists(directoryPath))
+            if (directoryPath.Exists)
             {
                 return directory;
             }
@@ -60,7 +60,7 @@ namespace GitTreeVersion.Context
                 return null;
             }
 
-            return FindDirectoryAbove(directory.Parent, directoryName);
+            return FindDirectoryAboveContaining(directory.Parent, directoryName);
         }
     }
 }
