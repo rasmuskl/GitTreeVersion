@@ -152,6 +152,124 @@ namespace GitTreeVersion.Tests
 
             version.Should().Be(new SemVersion(1, 1));
         }
+        
+        [Test]
+        public void MajorThenMinorThenChangeMajor()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            CommitFile(repositoryPath, majorBumpFile);
+
+            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            CommitFile(repositoryPath, minorBumpFile);
+            
+            File.WriteAllText(majorBumpFile.ToString(), "change");
+            CommitFile(repositoryPath, majorBumpFile);
+
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(1, 1, 1));
+        }
+        
+        [Test]
+        public void MajorThenMinorThenMoveMajor()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            CommitFile(repositoryPath, majorBumpFile);
+
+            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            CommitFile(repositoryPath, minorBumpFile);
+            
+            MoveAndCommitFile(repositoryPath, majorBumpFile, new AbsoluteFilePath(Path.Combine(majorBumpFile.Parent.ToString(), "new-name")));
+
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(1, 1, 1));
+        }
+        
+        [Test]
+        public void MajorThenMinorThenTCommitThenChangeMinor()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            CommitFile(repositoryPath, majorBumpFile);
+
+            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            CommitFile(repositoryPath, minorBumpFile);
+            
+            CommitNewFile(repositoryPath);
+            
+            File.WriteAllText(minorBumpFile.ToString(), "change");
+            CommitFile(repositoryPath, minorBumpFile);
+
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(1, 1, 2));
+        }
+
+        [Test]
+        [Ignore("Should work but does not yet - see comments inside")]
+        public void MajorThenMinorThenTCommitThenMoveMinor()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            CommitFile(repositoryPath, majorBumpFile, commitMessage: "bump major version");
+
+            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            CommitFile(repositoryPath, minorBumpFile, commitMessage: "bump minor version");
+            
+            CommitNewFile(repositoryPath);
+            
+            MoveAndCommitFile(repositoryPath, minorBumpFile, new AbsoluteFilePath(Path.Combine(minorBumpFile.Parent.ToString(), "new-name")));
+
+            // TODO: diff-filters are not working properly for this scenario
+            // Since we get the moved file name and use it as a pathspec, it does not track back to initial bump commit unless --follow is added, but --follow only allows for exactly one pathspec
+            // Potential solution - replace diff + log with reconstruction through: git log --full-history --first-parent --name-status --format=format:%H <major-commit>.. -- .version/minor/*
+            
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(1, 1, 2));
+        }
+
+        [Test]
+        public void MinorThenCommitThenChangeMinor()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            CommitFile(repositoryPath, minorBumpFile);
+            
+            CommitNewFile(repositoryPath);
+            
+            File.WriteAllText(minorBumpFile.ToString(), "change");
+            CommitFile(repositoryPath, minorBumpFile);
+
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(0, 1, 2));
+        }
+
+        [Test]
+        public void MinorThenChangeThenMoveMinor()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            CommitFile(repositoryPath, minorBumpFile);
+            
+            CommitNewFile(repositoryPath);
+            
+            MoveAndCommitFile(repositoryPath, minorBumpFile, new AbsoluteFilePath(Path.Combine(minorBumpFile.Parent.ToString(), "new-name")));
+
+            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            version.Should().Be(new SemVersion(0, 1, 2));
+        }
 
         [Test]
         public void NonDefaultBranch()
@@ -176,7 +294,7 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath);
 
-            var branchName = CreateBranch(repositoryPath, "feature/12345");
+            CreateBranch(repositoryPath, "feature/12345");
 
             CommitNewFile(repositoryPath);
             
@@ -184,7 +302,7 @@ namespace GitTreeVersion.Tests
 
             version.Should().Be(new SemVersion(0, 0, 2, "feature-12345"));
         }
-        
+
         [Test]
         public void AzureDevOpsDetachedHeadState()
         {
@@ -202,6 +320,17 @@ namespace GitTreeVersion.Tests
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath, buildEnvironmentDetector));
 
             version.Should().Be(new SemVersion(0, 0, 2, "PullRequest.42.1"));
+        }
+
+        private static void MoveAndCommitFile(AbsoluteDirectoryPath repositoryPath, AbsoluteFilePath sourceFile, AbsoluteFilePath targetFile)
+        {
+            File.Move(sourceFile.ToString(), targetFile.ToString());
+            Git.RunGit(repositoryPath, "add", "--all");
+
+            var relativeSourcePath = Path.GetRelativePath(repositoryPath.ToString(), sourceFile.ToString());
+            var relativeTargetPath = Path.GetRelativePath(repositoryPath.ToString(), targetFile.ToString());
+
+            Git.RunGit(repositoryPath, "commit", "--all", "--message", $"move {relativeSourcePath} to {relativeTargetPath}");
         }
 
         private static IEnvironmentAccessor SimulateAzureDevOpsPullRequest(AbsoluteDirectoryPath repositoryPath, string branchName, int pullRequestId)
@@ -277,11 +406,11 @@ namespace GitTreeVersion.Tests
             version.Should().Be(new SemVersion(2021, 101, 1));
         }
         
-        private void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
+        private void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig, string? commitMessage = null)
         {
             WriteVersionConfig(repositoryPath, versionConfig);
             Git.RunGit(repositoryPath, "add", "--all");
-            Git.RunGit(repositoryPath, "commit", "--all", "--message", Guid.NewGuid().ToString());
+            Git.RunGit(repositoryPath, "commit", "--all", "--message", commitMessage ?? Guid.NewGuid().ToString());
         }
 
         private AbsoluteFilePath WriteVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
@@ -305,21 +434,22 @@ namespace GitTreeVersion.Tests
             return branchName;
         }
 
-        private static void CommitNewFile(AbsoluteDirectoryPath repositoryPath, DateTimeOffset? commitTime = null)
+        private static void CommitNewFile(AbsoluteDirectoryPath repositoryPath, DateTimeOffset? commitTime = null, string? commitMessage = null)
         {
-            var fileName = Path.Combine(repositoryPath.ToString(), Guid.NewGuid().ToString());
+            var fileName = Path.Combine(repositoryPath.ToString(), $"file-{Guid.NewGuid()}");
             File.WriteAllText(fileName, Guid.NewGuid().ToString());
 
             using var repository = new Repository(repositoryPath.ToString());
 
-            repository.Index.Add(Path.GetRelativePath(repositoryPath.ToString(), fileName));
+            var relativeFilePath = Path.GetRelativePath(repositoryPath.ToString(), fileName);
+            repository.Index.Add(relativeFilePath);
             repository.Index.Write();
 
             var signature = new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), commitTime.GetValueOrDefault(DateTimeOffset.UtcNow));
-            repository.Commit(Guid.NewGuid().ToString(), signature, signature);
+            repository.Commit(commitMessage ?? $"add new file {relativeFilePath}", signature, signature);
         }
 
-        private static void CommitFile(AbsoluteDirectoryPath repositoryPath, AbsoluteFilePath filePath, DateTimeOffset? commitTime = null)
+        private static void CommitFile(AbsoluteDirectoryPath repositoryPath, AbsoluteFilePath filePath, DateTimeOffset? commitTime = null, string? commitMessage = null)
         {
             using var repository = new Repository(repositoryPath.ToString());
 
@@ -327,7 +457,7 @@ namespace GitTreeVersion.Tests
             repository.Index.Write();
 
             var signature = new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), commitTime.GetValueOrDefault(DateTimeOffset.UtcNow));
-            repository.Commit(Guid.NewGuid().ToString(), signature, signature);
+            repository.Commit(commitMessage ?? Guid.NewGuid().ToString(), signature, signature);
         }
 
         private static AbsoluteDirectoryPath CreateGitRepository()

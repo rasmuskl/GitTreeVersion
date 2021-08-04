@@ -9,6 +9,8 @@ namespace GitTreeVersion
 {
     public class VersionCalculator
     {
+        
+        
         public SemVersion GetVersion(FileGraph graph)
         {
             return GetVersion(graph, graph.VersionRootPath);
@@ -16,6 +18,8 @@ namespace GitTreeVersion
 
         public SemVersion GetVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
+            var versionConfiguration = new VersionConfiguration();
+            
             if (graph.VersionRootConfigs[versionRootPath].Mode == VersionMode.CalendarVersion)
             {
                 return GetCalendarVersion(graph, versionRootPath);
@@ -24,101 +28,11 @@ namespace GitTreeVersion
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
             var prerelease = GetPrerelease(graph, versionRootPath, relevantPaths);
 
-            var majorVersionFiles = Git.GitFindFiles(versionRootPath, new[] {":(glob).version/major/*"});
+            var majorComponent = versionConfiguration.Major.GetVersionComponent(versionRootPath, relevantPaths, null);
+            var minorComponent = versionConfiguration.Minor.GetVersionComponent(versionRootPath, relevantPaths, majorComponent.Range);
+            var patchComponent = versionConfiguration.Patch.GetVersionComponent(versionRootPath, relevantPaths, minorComponent.Range);
 
-            foreach (var file in majorVersionFiles)
-            {
-                Log.Debug($"Major version file: {file}");
-            }
-
-            string? range = null;
-            var major = majorVersionFiles.Length;
-            var minor = 0;
-
-            string[] majorVersionCommits;
-
-            if (majorVersionFiles.Any())
-            {
-                majorVersionCommits = Git.GitCommits(versionRootPath, null, new[] {":(glob).version/major/*"});
-
-                foreach (var majorVersionCommit in majorVersionCommits)
-                {
-                    Log.Debug($"Major version commit: {majorVersionCommit}");
-                }
-            }
-            else
-            {
-                majorVersionCommits = Array.Empty<string>();
-            }
-
-            if (majorVersionCommits.Any())
-            {
-                range = $"{majorVersionCommits.First()}..";
-                var changedMinorFiles = Git.GitDiffFileNames(versionRootPath, range, ":(glob).version/minor/*");
-
-                foreach (var file in changedMinorFiles)
-                {
-                    Log.Debug($"Minor version file: {file}");
-                }
-
-                minor = changedMinorFiles.Length;
-
-                var minorVersionCommits = Git.GitCommits(versionRootPath, range, changedMinorFiles.ToArray());
-
-                foreach (var commit in minorVersionCommits)
-                {
-                    Log.Debug($"Minor version commit: {commit}");
-                }
-
-                if (minorVersionCommits.Any())
-                {
-                    range = $"{minorVersionCommits.First()}..";
-                }
-            }
-            else
-            {
-                var minorVersionFiles = Git.GitFindFiles(versionRootPath, new[] {":(glob).version/minor/*"});
-
-                foreach (var file in minorVersionFiles)
-                {
-                    Log.Debug($"Minor version file: {file}");
-                }
-
-                if (minorVersionFiles.Any())
-                {
-                    minor = minorVersionFiles.Length;
-                    var minorVersionCommits = Git.GitCommits(versionRootPath, null, new[] {":(glob).version/minor/*"});
-
-                    foreach (var commit in minorVersionCommits)
-                    {
-                        Log.Debug($"Minor version commit: {commit}");
-                    }
-
-                    if (minorVersionCommits.Any())
-                    {
-                        range = $"{minorVersionCommits.First()}..";
-                    }
-                }
-            }
-
-            // var merges = Git.GitMerges(versionRootPath, range, relevantPaths);
-
-            // Log.Debug($"Merges: {merges.Length}");
-            // Log.Debug($"Last merge: {merges.FirstOrDefault()}");
-
-            // if (merges.Any())
-            // {
-            //     range = $"{merges.First()}..";
-            // }
-
-            var commits = Git.GitCommits(versionRootPath, range, relevantPaths.Select(p => p.ToString()).ToArray());
-
-            // Log.Debug($"Non-merges: {nonMerges.Length}");
-            // Log.Debug($"Version: 0.{merges.Length}.{nonMerges.Length}");
-
-            var patch = commits.Length;
-
-            return new SemVersion(major, minor, patch, prerelease);
+            return new SemVersion(majorComponent.Version, minorComponent.Version, patchComponent.Version, prerelease);
         }
 
         private SemVersion GetCalendarVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
@@ -131,7 +45,7 @@ namespace GitTreeVersion
 
             if (newestCommit is null)
             {
-                throw new InvalidOperationException("No newest commit found for paths: " + string.Join(", ", relevantPaths));
+                throw new InvalidOperationException($"No newest commit found for paths: {string.Join(", ", relevantPaths)}");
             }
 
             var newestCommitTimestamp = DateTimeOffset.FromUnixTimeSeconds(newestCommit.Value);

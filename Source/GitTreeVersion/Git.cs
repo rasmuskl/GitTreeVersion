@@ -37,6 +37,7 @@ namespace GitTreeVersion
             var arguments = new List<string>();
             arguments.Add("log");
             arguments.Add("--full-history");
+            arguments.Add("--first-parent");
             arguments.Add("--author-date-order");
             arguments.Add("--max-count=1");
             arguments.Add("--format=%at");
@@ -60,13 +61,13 @@ namespace GitTreeVersion
             return long.Parse(unixTimeSeconds);
         }
 
-        public static string[] GitCommits(AbsoluteDirectoryPath workingDirectory, string? range,
-            string[] pathSpecs, DateTimeOffset? after = null, DateTimeOffset? before = null)
+        public static string[] GitCommits(AbsoluteDirectoryPath workingDirectory, string? range, string[] pathSpecs, DateTimeOffset? after = null, DateTimeOffset? before = null, string? diffFilter = null)
         {
             var arguments = new List<string>();
-            arguments.Add("rev-list");
+            arguments.Add("log");
             arguments.Add("--full-history");
             arguments.Add("--first-parent");
+            arguments.Add("--format=format:%H");
 
             if (after is not null)
             {
@@ -79,6 +80,11 @@ namespace GitTreeVersion
             }
 
             arguments.Add(range ?? "HEAD");
+
+            if (!string.IsNullOrEmpty(diffFilter))
+            {
+                arguments.Add($"--diff-filter={diffFilter}");
+            }
 
             if (pathSpecs.Any())
             {
@@ -173,7 +179,7 @@ namespace GitTreeVersion
             var arguments = new List<string>();
             arguments.Add("diff");
             arguments.Add("--name-only");
-
+            
             arguments.Add(range ?? "HEAD");
 
             if (!string.IsNullOrWhiteSpace(pathSpec))
