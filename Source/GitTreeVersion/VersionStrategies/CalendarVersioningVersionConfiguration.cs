@@ -4,6 +4,6 @@
     {
         public IVersionStrategy Major => new FullDateVersionStrategy();
         public IVersionStrategy Minor => new CommitCountVersionStrategy();
-        public IVersionStrategy Patch => new ZeroVersionStrategy();
+        public IVersionStrategy Patch => new FixedVersionStrategy(0);
     }
 }

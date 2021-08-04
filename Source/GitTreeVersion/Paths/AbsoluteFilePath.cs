@@ -33,6 +33,7 @@ namespace GitTreeVersion.Paths
 
         public bool Exists => File.Exists(_path);
         public string Extension => Path.GetExtension(_path);
+        public string FullName => _path;
 
         public override string ToString()
         {

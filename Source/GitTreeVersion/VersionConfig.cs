@@ -1,4 +1,6 @@
-﻿namespace GitTreeVersion
+﻿using Semver;
+
+namespace GitTreeVersion
 {
     public class VersionConfig
     {
@@ -8,11 +10,13 @@
         };
 
         public VersionMode Mode { get; set; }
+        public string? Version { get; set; }
     }
 
     public enum VersionMode
     {
         SemanticVersion,
-        CalendarVersion
+        CalendarVersion,
+        SemanticVersionFileBased,
     }
 }

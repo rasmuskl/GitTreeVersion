@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
+using System.Linq;
 using System.Xml.Linq;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
@@ -12,30 +13,40 @@ namespace GitTreeVersion.Commands
     {
         public VersionCommand() : base("version", "Versions the thing")
         {
-            Handler = CommandHandler.Create<bool, bool>(Execute);
+            Handler = CommandHandler.Create<bool, bool, bool>(Execute);
 
             AddOption(new Option<bool>("--directory-build-props"));
+            AddOption(new Option<bool>("--apply"));
         }
 
-        private void Execute(bool directoryBuildProps, bool debug)
+        private void Execute(bool directoryBuildProps, bool apply, bool debug)
         {
             Log.IsDebug = debug;
 
             var stopwatch = Stopwatch.StartNew();
-            var repositoryContext =
-                ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
+            var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
 
-            Console.WriteLine($"Repository root: {repositoryContext.RepositoryRootPath}");
-            Console.WriteLine($"Version root: {repositoryContext.VersionRootPath}");
-
-            // GitFindFiles(workingDirectory, ":(top,glob)**/*.csproj");
-            // var file = @"Source/PoeNinja/PoeNinja.csproj";
-            // var lastCommitHashes = GitLastCommitHashes(workingDirectory, file);
-            // Console.WriteLine($"Last commit hash: {string.Join(Environment.NewLine, lastCommitHashes)}");
-            // var range = $"{lastCommitHashes.Last()}..";
+            Console.WriteLine($"Repository root: {fileGraph.RepositoryRootPath}");
+            Console.WriteLine($"Version root: {fileGraph.VersionRootPath}");
 
             var versionCalculator = new VersionCalculator();
-            var version = versionCalculator.GetVersion(repositoryContext);
+            var version = versionCalculator.GetVersion(fileGraph);
+
+            if (apply)
+            {
+                var relevantDeployables = fileGraph.DeployableFileVersionRoots.Where(p => p.Value == fileGraph.VersionRootPath).Select(p => p.Key).ToArray();
+
+                foreach (var deployable in relevantDeployables)
+                {
+                    Console.WriteLine(deployable.FullName);
+
+                    if (deployable.Extension == ".csproj")
+                    {
+                        var applier = new DotnetVersionApplier();
+                        applier.ApplyVersion(deployable, version);
+                    }
+                }
+            }
 
             if (directoryBuildProps)
             {

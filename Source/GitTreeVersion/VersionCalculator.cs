@@ -22,6 +22,11 @@ namespace GitTreeVersion
                 versionConfiguration = new CalendarVersioningVersionConfiguration();
             }
 
+            if (graph.VersionRootConfigs[versionRootPath].Mode == VersionMode.SemanticVersionFileBased)
+            {
+                versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration(graph.VersionRootConfigs[versionRootPath]);
+            }
+
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
             var prerelease = GetPrerelease(graph, versionRootPath, relevantPaths);
 
