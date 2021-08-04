@@ -18,7 +18,7 @@ namespace GitTreeVersion.Context
 
             CurrentBranch = Git.GitCurrentBranch(repositoryRootPath);
             BuildEnvironment = (buildEnvironmentDetector ?? new BuildEnvironmentDetector()).GetBuildEnvironment();
-            
+
             var rootStack = new Stack<AbsoluteDirectoryPath>();
             rootStack.Push(versionRootPath);
 
@@ -28,7 +28,7 @@ namespace GitTreeVersion.Context
 
             versionRootPaths.Add(versionRootPath);
             versionRootParents[versionRootPath] = null;
-            
+
             var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, new[] {":(glob)**/version.json"}, true)
                 .Select(Path.GetDirectoryName)
                 .OrderBy(p => p);
@@ -75,7 +75,7 @@ namespace GitTreeVersion.Context
             var relevantDeployableFiles = Git.GitFindFiles(VersionRootPath, new[] {":(glob)**/*.csproj", ":(glob)**/package.json"}, true);
 
             var relevantDeployableFilePaths = relevantDeployableFiles
-                .Select(f => new AbsoluteFilePath(Path.GetFullPath(Path.Combine(VersionRootPath.ToString(), f))));
+                .Select(f => new AbsoluteFilePath(new FileInfo(Path.Combine(VersionRootPath.ToString(), f)).FullName));
 
             var deployableVersionRoots = new Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath>();
             var deployableDependencies = new Dictionary<AbsoluteFilePath, AbsoluteFilePath[]>();
