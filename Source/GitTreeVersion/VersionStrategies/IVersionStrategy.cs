@@ -1,6 +1,6 @@
 ﻿using GitTreeVersion.Paths;
 
-namespace GitTreeVersion
+namespace GitTreeVersion.VersionStrategies
 {
     public interface IVersionStrategy
     {

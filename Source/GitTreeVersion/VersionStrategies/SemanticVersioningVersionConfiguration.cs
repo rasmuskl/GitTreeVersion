@@ -1,6 +1,6 @@
-﻿namespace GitTreeVersion
+﻿namespace GitTreeVersion.VersionStrategies
 {
-    public class VersionConfiguration
+    public class SemanticVersioningVersionConfiguration : IVersionConfiguration
     {
         public IVersionStrategy Major => new MajorFileBumpVersionStrategy();
         public IVersionStrategy Minor => new MinorFileBumpVersionStrategy();

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using GitTreeVersion.Paths;
 
-namespace GitTreeVersion
+namespace GitTreeVersion.VersionStrategies
 {
     public class CommitCountVersionStrategy : IVersionStrategy
     {
