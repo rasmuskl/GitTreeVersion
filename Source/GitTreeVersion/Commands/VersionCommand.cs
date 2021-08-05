@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
+using GitTreeVersion.VersionAppliers;
 
 namespace GitTreeVersion.Commands
 {
@@ -42,8 +43,11 @@ namespace GitTreeVersion.Commands
 
                     if (deployable.Extension == ".csproj")
                     {
-                        var applier = new DotnetVersionApplier();
-                        applier.ApplyVersion(deployable, version);
+                        new DotnetVersionApplier().ApplyVersion(deployable, version);
+                    }
+                    else if (deployable.FileName == "package.json")
+                    {
+                        new NpmVersionApplier().ApplyVersion(deployable, version);
                     }
                 }
             }

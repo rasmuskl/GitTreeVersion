@@ -5,9 +5,9 @@ using System.Xml.XPath;
 using GitTreeVersion.Paths;
 using Semver;
 
-namespace GitTreeVersion
+namespace GitTreeVersion.VersionAppliers
 {
-    public class DotnetVersionApplier
+    public class DotnetVersionApplier : IVersionApplier
     {
         public void ApplyVersion(AbsoluteFilePath filePath, SemVersion version)
         {
