@@ -26,7 +26,7 @@ jobs:
       working-directory: Source
 
     - name: Version
-      run: dotnet run --project GitTreeVersion -- version --directory-build-props
+      run: dotnet run --project GitTreeVersion -- version --apply
       working-directory: Source
 
     - name: Build

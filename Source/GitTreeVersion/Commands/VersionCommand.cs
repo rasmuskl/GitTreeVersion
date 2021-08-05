@@ -3,10 +3,10 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.Linq;
-using System.Xml.Linq;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 using GitTreeVersion.VersionAppliers;
+using Spectre.Console;
 
 namespace GitTreeVersion.Commands
 {
@@ -14,13 +14,12 @@ namespace GitTreeVersion.Commands
     {
         public VersionCommand() : base("version", "Versions the thing")
         {
-            Handler = CommandHandler.Create<bool, bool, bool>(Execute);
+            Handler = CommandHandler.Create<bool, bool>(Execute);
 
-            AddOption(new Option<bool>("--directory-build-props"));
             AddOption(new Option<bool>("--apply"));
         }
 
-        private void Execute(bool directoryBuildProps, bool apply, bool debug)
+        private void Execute(bool apply, bool debug)
         {
             Log.IsDebug = debug;
 
@@ -33,13 +32,15 @@ namespace GitTreeVersion.Commands
             var versionCalculator = new VersionCalculator();
             var version = versionCalculator.GetVersion(fileGraph);
 
+            AnsiConsole.MarkupLine($"Version: [green]{version}[/]");
+
             if (apply)
             {
                 var relevantDeployables = fileGraph.DeployableFileVersionRoots.Where(p => p.Value == fileGraph.VersionRootPath).Select(p => p.Key).ToArray();
 
                 foreach (var deployable in relevantDeployables)
                 {
-                    Console.WriteLine(deployable.FullName);
+                    AnsiConsole.MarkupLine($"Applying version [green]{version}[/] to: {deployable.FullName}");
 
                     if (deployable.Extension == ".csproj")
                     {
@@ -49,22 +50,12 @@ namespace GitTreeVersion.Commands
                     {
                         new NpmVersionApplier().ApplyVersion(deployable, version);
                     }
+                    else
+                    {
+                        Log.Warning($"Unable to apply version to: {deployable.FullName}");
+                    }
                 }
             }
-
-            if (directoryBuildProps)
-            {
-                var xDocument = new XDocument(
-                    new XElement("Project",
-                        new XElement("PropertyGroup",
-                            new XElement("Version", version.ToString()))));
-
-
-                xDocument.Save("Directory.Build.props");
-                Console.WriteLine($"Wrote version {version} to Directory.Build.props");
-            }
-
-            Console.WriteLine($"Version: {version}");
 
             Log.Debug($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
