@@ -7,7 +7,7 @@ namespace GitTreeVersion.VersionStrategies
     {
         public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
         {
-            var majorVersionFiles = Git.GitFindFiles(versionRootPath, new[] {":(glob).version/major/*"});
+            var majorVersionFiles = Git.GitFindFiles(versionRootPath, new[] { ":(glob).version/major/*" });
 
             foreach (var file in majorVersionFiles)
             {
@@ -16,7 +16,7 @@ namespace GitTreeVersion.VersionStrategies
 
             if (majorVersionFiles.Any())
             {
-                string[] majorVersionCommits = Git.GitCommits(versionRootPath, null, new[] {":(glob).version/major/*"}, diffFilter: "A");
+                string[] majorVersionCommits = Git.GitCommits(versionRootPath, null, new[] { ":(glob).version/major/*" }, diffFilter: "A");
 
                 foreach (var majorVersionCommit in majorVersionCommits)
                 {

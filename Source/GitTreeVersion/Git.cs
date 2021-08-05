@@ -121,14 +121,14 @@ namespace GitTreeVersion
             {
                 return null;
             }
-            
+
             var match = Regex.Match(branch, "(HEAD detached at (?<ref>[^)]*))");
 
             if (match.Success)
             {
                 return new GitRef(match.Groups["ref"].Value, true);
             }
-            
+
             return new GitRef(branch.TrimStart(' ', '*'), false);
         }
 
@@ -179,7 +179,7 @@ namespace GitTreeVersion
             var arguments = new List<string>();
             arguments.Add("diff");
             arguments.Add("--name-only");
-            
+
             arguments.Add(range ?? "HEAD");
 
             if (!string.IsNullOrWhiteSpace(pathSpec))
@@ -199,7 +199,7 @@ namespace GitTreeVersion
                 FileName = "git",
                 WorkingDirectory = workingDirectory.ToString(),
                 RedirectStandardOutput = true,
-                RedirectStandardError = true
+                RedirectStandardError = true,
             };
 
             foreach (var argument in arguments)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Paths;
 

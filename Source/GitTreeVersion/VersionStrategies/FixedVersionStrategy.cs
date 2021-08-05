@@ -13,7 +13,7 @@ namespace GitTreeVersion.VersionStrategies
 
         public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
         {
-            return new(_version, range);
+            return new VersionComponent(_version, range);
         }
     }
 }

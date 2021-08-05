@@ -9,10 +9,10 @@ namespace GitTreeVersion.VersionStrategies
             AbsoluteDirectoryPath[] relevantPaths, string? range)
         {
             var minor = 0;
-            
+
             if (range is null)
             {
-                var minorVersionFiles = Git.GitFindFiles(versionRootPath, new[] {":(glob).version/minor/*"});
+                var minorVersionFiles = Git.GitFindFiles(versionRootPath, new[] { ":(glob).version/minor/*" });
 
                 foreach (var file in minorVersionFiles)
                 {
@@ -22,7 +22,7 @@ namespace GitTreeVersion.VersionStrategies
                 if (minorVersionFiles.Any())
                 {
                     minor = minorVersionFiles.Length;
-                    var minorVersionCommits = Git.GitCommits(versionRootPath, null, new[] {":(glob).version/minor/*"},
+                    var minorVersionCommits = Git.GitCommits(versionRootPath, null, new[] { ":(glob).version/minor/*" },
                         diffFilter: "A");
 
                     foreach (var commit in minorVersionCommits)
@@ -60,7 +60,7 @@ namespace GitTreeVersion.VersionStrategies
                     range = $"{minorVersionCommits.First()}..";
                 }
             }
-            
+
             return new VersionComponent(minor, range);
         }
     }

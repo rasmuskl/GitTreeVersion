@@ -19,6 +19,6 @@ namespace GitTreeVersion.Context
     public enum VersionType
     {
         Major,
-        Minor
+        Minor,
     }
 }

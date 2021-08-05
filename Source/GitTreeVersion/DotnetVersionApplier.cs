@@ -13,7 +13,7 @@ namespace GitTreeVersion
         {
             var document = XDocument.Load(filePath.FullName, LoadOptions.PreserveWhitespace);
 
-            var writerSettings = new XmlWriterSettings() { OmitXmlDeclaration = true };
+            var writerSettings = new XmlWriterSettings { OmitXmlDeclaration = true };
 
             var versionElement = document.XPathSelectElements("//PropertyGroup/Version").FirstOrDefault();
 

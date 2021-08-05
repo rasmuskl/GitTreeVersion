@@ -25,7 +25,7 @@ namespace GitTreeVersion.Commands
             Console.WriteLine($"Version root path: {versionRootPath}");
 
             var bumper = new Bumper();
-            bumper.Bump(versionRootPath, (VersionType) type);
+            bumper.Bump(versionRootPath, (VersionType)type);
         }
 
         private enum VersionTypeOptions
@@ -34,7 +34,7 @@ namespace GitTreeVersion.Commands
             major = VersionType.Major,
 
             // ReSharper disable once InconsistentNaming
-            minor = VersionType.Minor
+            minor = VersionType.Minor,
         }
     }
 }

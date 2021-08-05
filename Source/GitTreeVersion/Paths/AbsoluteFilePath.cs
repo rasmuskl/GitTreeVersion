@@ -6,43 +6,41 @@ namespace GitTreeVersion.Paths
 {
     public readonly struct AbsoluteFilePath
     {
-        private readonly string _path;
-
         public AbsoluteFilePath(string path)
         {
             Debug.Assert(Path.IsPathRooted(path));
-            _path = path;
+            FullName = path;
         }
 
-        public string FileName => Path.GetFileName(_path);
+        public string FileName => Path.GetFileName(FullName);
 
         public AbsoluteDirectoryPath Parent
         {
             get
             {
-                var parentDirectoryPath = Path.GetDirectoryName(_path);
+                var parentDirectoryPath = Path.GetDirectoryName(FullName);
 
                 if (parentDirectoryPath == null)
                 {
-                    throw new InvalidOperationException($"No parent directory found for file path: {_path}");
+                    throw new InvalidOperationException($"No parent directory found for file path: {FullName}");
                 }
 
                 return new AbsoluteDirectoryPath(parentDirectoryPath);
             }
         }
 
-        public bool Exists => File.Exists(_path);
-        public string Extension => Path.GetExtension(_path);
-        public string FullName => _path;
+        public bool Exists => File.Exists(FullName);
+        public string Extension => Path.GetExtension(FullName);
+        public string FullName { get; }
 
         public override string ToString()
         {
-            return _path;
+            return FullName;
         }
 
         public bool Equals(AbsoluteFilePath other)
         {
-            return _path == other._path;
+            return FullName == other.FullName;
         }
 
         public override bool Equals(object? obj)
@@ -52,7 +50,7 @@ namespace GitTreeVersion.Paths
 
         public override int GetHashCode()
         {
-            return _path.GetHashCode();
+            return FullName.GetHashCode();
         }
 
         public static bool operator ==(AbsoluteFilePath left, AbsoluteFilePath right)

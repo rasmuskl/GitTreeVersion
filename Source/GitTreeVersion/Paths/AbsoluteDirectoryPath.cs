@@ -8,7 +8,7 @@ namespace GitTreeVersion.Paths
     public readonly struct AbsoluteDirectoryPath
     {
         private readonly string _path;
-        private static readonly char[] PathSeparators = new [] {'/', '\\'};
+        private static readonly char[] PathSeparators = { '/', '\\' };
 
         public AbsoluteDirectoryPath(string path)
         {
@@ -18,7 +18,7 @@ namespace GitTreeVersion.Paths
 
         public AbsoluteFilePath CombineToFile(params string[] relativePaths)
         {
-            var paths = new[] {_path}
+            var paths = new[] { _path }
                 .Concat(relativePaths
                     .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
                 .ToArray();
@@ -29,7 +29,7 @@ namespace GitTreeVersion.Paths
 
         public AbsoluteDirectoryPath CombineToDirectory(params string[] relativePaths)
         {
-            var paths = new[] {_path}
+            var paths = new[] { _path }
                 .Concat(relativePaths
                     .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
                 .ToArray();

@@ -369,7 +369,7 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateGitRepository();
 
-            CommitVersionConfig(repositoryPath, new VersionConfig {Mode = VersionMode.SemanticVersion});
+            CommitVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersion });
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
@@ -382,7 +382,7 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
 
             var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
-            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig {Mode = VersionMode.CalendarVersion});
+            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.CalendarVersion });
             CommitFile(repositoryPath, filePath, commitTime);
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
@@ -396,7 +396,7 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
 
             var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
-            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig {Mode = VersionMode.CalendarVersion});
+            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.CalendarVersion });
             CommitFile(repositoryPath, filePath, commitTime);
 
             CommitNewFile(repositoryPath, commitTime.Add(TimeSpan.FromSeconds(5)));

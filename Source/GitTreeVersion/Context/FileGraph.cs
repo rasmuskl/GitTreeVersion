@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -30,7 +29,7 @@ namespace GitTreeVersion.Context
             versionRootPaths.Add(versionRootPath);
             versionRootParents[versionRootPath] = null;
 
-            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, new[] {":(glob)**/version.json"}, true)
+            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, new[] { ":(glob)**/version.json" }, true)
                 .Select(Path.GetDirectoryName)
                 .OrderBy(p => p);
 
@@ -73,7 +72,7 @@ namespace GitTreeVersion.Context
             VersionRootParents = versionRootParents;
             VersionRootConfigs = versionRootConfigs;
 
-            var relevantDeployableFiles = Git.GitFindFiles(VersionRootPath, new[] {":(glob)**/*.csproj", ":(glob)**/package.json"}, true);
+            var relevantDeployableFiles = Git.GitFindFiles(VersionRootPath, new[] { ":(glob)**/*.csproj", ":(glob)**/package.json" }, true);
 
             var relevantDeployableFilePaths = relevantDeployableFiles
                 .Select(f => VersionRootPath.CombineToFile(f));

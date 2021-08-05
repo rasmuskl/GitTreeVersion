@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using GitTreeVersion.BuildEnvironments;
-using GitTreeVersion.Context;
 
 namespace GitTreeVersion.Tests
 {

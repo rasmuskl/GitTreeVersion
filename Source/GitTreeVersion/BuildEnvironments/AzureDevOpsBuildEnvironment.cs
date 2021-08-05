@@ -11,7 +11,7 @@ namespace GitTreeVersion.BuildEnvironments
         {
             _environmentAccessor = environmentAccessor;
         }
-        
+
         public string? GetPrerelease(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)
         {
             var pullRequestId = _environmentAccessor.GetEnvironmentVariable("SYSTEM_PULLREQUEST_PULLREQUESTID");

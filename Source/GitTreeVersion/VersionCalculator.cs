@@ -66,6 +66,7 @@ namespace GitTreeVersion
             {
                 branchName = branchName.Replace("--", "-");
             }
+
             return branchName.Trim();
         }
     }

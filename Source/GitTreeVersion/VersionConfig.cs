@@ -1,12 +1,10 @@
-﻿using Semver;
-
-namespace GitTreeVersion
+﻿namespace GitTreeVersion
 {
     public class VersionConfig
     {
         public static readonly VersionConfig Default = new()
         {
-            Mode = VersionMode.SemanticVersion
+            Mode = VersionMode.SemanticVersion,
         };
 
         public VersionMode Mode { get; set; }
