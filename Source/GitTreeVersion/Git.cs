@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -235,5 +236,38 @@ namespace GitTreeVersion
 
             return outputBuilder.ToString();
         }
+
+        public static FileCommitContent[] FileCommitHistory(AbsoluteDirectoryPath repositoryPath, string filePath)
+        {
+            var commits = GitCommits(repositoryPath, null, new []{ filePath });
+
+            var args = new List<string>();
+
+            var marker = Guid.NewGuid().ToString();
+
+            args.Add("show");
+            args.Add("--no-patch");
+            args.Add($"--format=format:{marker}%H{marker}");
+
+            foreach (var commit in commits)
+            {
+                args.Add(commit);
+                args.Add($"{commit}:{Path.GetRelativePath(repositoryPath.FullName, filePath)}");
+            }
+
+            var output = RunGit(repositoryPath, args.ToArray());
+            var splitOutput = output.Split(marker, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            var list = new List<FileCommitContent>();
+
+            for (var i = 0; i < splitOutput.Length; i += 2)
+            {
+                list.Add(new FileCommitContent(splitOutput[i], splitOutput[i+1]));
+            }
+
+            return list.ToArray();
+        }
     }
+
+    public record FileCommitContent(string CommitSha, string Content);
 }

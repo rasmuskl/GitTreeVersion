@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using FluentAssertions;
 using GitTreeVersion.BuildEnvironments;
@@ -320,6 +321,42 @@ namespace GitTreeVersion.Tests
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath, buildEnvironmentDetector));
 
             version.Should().Be(new SemVersion(0, 0, 2, "PullRequest.42.1"));
+        }
+
+        [Test]
+        public void GitFileHistory()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var versionConfigs = new[]
+            {
+                new VersionConfig { Mode = VersionMode.SemanticVersion, Version = "1.0.0" },
+                new VersionConfig { Mode = VersionMode.SemanticVersion, Version = "1.1.0" },
+                new VersionConfig { Mode = VersionMode.SemanticVersion, Version = "1.2.0" },
+            };
+
+            foreach (var versionConfig in versionConfigs)
+            {
+                CommitVersionConfig(repositoryPath, versionConfig);
+            }
+
+            var filePath = Path.Combine(repositoryPath.ToString(), ContextResolver.VersionConfigFileName);
+
+            var commitContents = Git.FileCommitHistory(repositoryPath, filePath);
+
+            commitContents.Length.Should().Be(versionConfigs.Length);
+
+            var reversedVersionConfigs = versionConfigs.Reverse().ToArray();
+
+            for (var i = 0; i < commitContents.Length; i++)
+            {
+                var serializedVersionConfig = reversedVersionConfigs[i];
+                var deserializedVersionConfig = JsonSerializer.Deserialize<VersionConfig>(commitContents[i].Content, JsonOptions.DefaultOptions);
+
+                deserializedVersionConfig.Should().NotBeNull();
+                serializedVersionConfig.Mode.Should().Be(deserializedVersionConfig!.Mode);
+                serializedVersionConfig.Version.Should().Be(deserializedVersionConfig.Version);
+            }
         }
 
         private static void MoveAndCommitFile(AbsoluteDirectoryPath repositoryPath, AbsoluteFilePath sourceFile, AbsoluteFilePath targetFile)

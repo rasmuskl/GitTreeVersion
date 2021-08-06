@@ -7,18 +7,17 @@ namespace GitTreeVersion.Paths
 {
     public readonly struct AbsoluteDirectoryPath
     {
-        private readonly string _path;
         private static readonly char[] PathSeparators = { '/', '\\' };
 
         public AbsoluteDirectoryPath(string path)
         {
             Debug.Assert(Path.IsPathRooted(path));
-            _path = path;
+            FullName = path;
         }
 
         public AbsoluteFilePath CombineToFile(params string[] relativePaths)
         {
-            var paths = new[] { _path }
+            var paths = new[] { FullName }
                 .Concat(relativePaths
                     .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
                 .ToArray();
@@ -29,7 +28,7 @@ namespace GitTreeVersion.Paths
 
         public AbsoluteDirectoryPath CombineToDirectory(params string[] relativePaths)
         {
-            var paths = new[] { _path }
+            var paths = new[] { FullName }
                 .Concat(relativePaths
                     .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
                 .ToArray();
@@ -42,7 +41,7 @@ namespace GitTreeVersion.Paths
         {
             get
             {
-                var parentDirectoryPath = Path.GetDirectoryName(_path);
+                var parentDirectoryPath = Path.GetDirectoryName(FullName);
 
                 if (parentDirectoryPath == null)
                 {
@@ -53,19 +52,20 @@ namespace GitTreeVersion.Paths
             }
         }
 
-        public bool IsAtRoot => Path.GetDirectoryName(_path) == null;
-        public int PathLength => _path.Length;
-        public string Name => Path.GetFileName(_path);
-        public bool Exists => Directory.Exists(_path);
+        public bool IsAtRoot => Path.GetDirectoryName(FullName) == null;
+        public int PathLength => FullName.Length;
+        public string Name => Path.GetFileName(FullName);
+        public bool Exists => Directory.Exists(FullName);
+        public string FullName { get; }
 
         public override string ToString()
         {
-            return _path;
+            return FullName;
         }
 
         public bool Equals(AbsoluteDirectoryPath other)
         {
-            return _path == other._path;
+            return FullName == other.FullName;
         }
 
         public override bool Equals(object? obj)
@@ -75,7 +75,7 @@ namespace GitTreeVersion.Paths
 
         public override int GetHashCode()
         {
-            return _path.GetHashCode();
+            return FullName.GetHashCode();
         }
 
         public static bool operator ==(AbsoluteDirectoryPath left, AbsoluteDirectoryPath right)
@@ -90,7 +90,7 @@ namespace GitTreeVersion.Paths
 
         public bool IsInSubPathOf(AbsoluteDirectoryPath parentPath)
         {
-            var directoryPath = Path.TrimEndingDirectorySeparator(new DirectoryInfo(_path).FullName) + Path.DirectorySeparatorChar;
+            var directoryPath = Path.TrimEndingDirectorySeparator(new DirectoryInfo(FullName).FullName) + Path.DirectorySeparatorChar;
             var potentialParentDirectoryPath = Path.TrimEndingDirectorySeparator(new DirectoryInfo(parentPath.ToString()).FullName) + Path.DirectorySeparatorChar;
             return directoryPath.StartsWith(potentialParentDirectoryPath);
         }

@@ -21,7 +21,7 @@ namespace GitTreeVersion.BuildEnvironments
                 return null;
             }
 
-            var branchCommits = Git.GitCommits(versionRootPath, "HEAD^1..HEAD^2", relevantPaths.Select(p => p.ToString()).ToArray());
+            var branchCommits = Git.GitCommits(versionRootPath, "HEAD^1..HEAD^2", relevantPaths.Select(p => p.FullName).ToArray());
             return $"PullRequest.{pullRequestId}.{branchCommits.Length}";
         }
     }
