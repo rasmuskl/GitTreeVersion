@@ -4,7 +4,7 @@ using System.IO;
 
 namespace GitTreeVersion.Paths
 {
-    public readonly struct AbsoluteFilePath
+    public class AbsoluteFilePath
     {
         public AbsoluteFilePath(string path)
         {

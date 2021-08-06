@@ -132,7 +132,12 @@ namespace GitTreeVersion.Context
                 var deployableVersionRoot = versionRootPaths
                     .Where(p => deployableFilePath.IsInSubPathOf(p))
                     .OrderByDescending(p => p.PathLength)
-                    .First();
+                    .FirstOrDefault();
+
+                if (deployableVersionRoot is null)
+                {
+                    continue;
+                }
 
                 deployableVersionRoots[deployableFilePath] = deployableVersionRoot;
             }
@@ -174,7 +179,7 @@ namespace GitTreeVersion.Context
 
             foreach (var relevantDirectory in relevantDirectories)
             {
-                if (previous is not null && relevantDirectory.IsInSubPathOf(previous.Value))
+                if (previous is not null && relevantDirectory.IsInSubPathOf(previous))
                 {
                     continue;
                 }

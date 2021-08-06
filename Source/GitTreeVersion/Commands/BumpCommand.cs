@@ -10,22 +10,24 @@ namespace GitTreeVersion.Commands
     {
         public BumpCommand() : base("bump", "Bump versions")
         {
-            Handler = CommandHandler.Create<VersionTypeOptions, bool>(Execute);
+            Handler = CommandHandler.Create<VersionTypeOptions, bool, string?>(Execute);
 
             AddArgument(new Argument<VersionTypeOptions>("type"));
+            AddArgument(new Argument<string?>("path", () => null));
         }
 
-        private void Execute(VersionTypeOptions type, bool debug)
+        private void Execute(VersionTypeOptions type, bool debug, string? path)
         {
             Log.IsDebug = debug;
+            path ??= Environment.CurrentDirectory;
             Console.WriteLine($"Bumping {type}");
 
-            var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
+            var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(path));
             var versionRootPath = fileGraph.VersionRootPath;
             Console.WriteLine($"Version root path: {versionRootPath}");
 
             var bumper = new Bumper();
-            bumper.Bump(versionRootPath, (VersionType)type);
+            bumper.Bump(versionRootPath, (VersionType) type);
         }
 
         private enum VersionTypeOptions

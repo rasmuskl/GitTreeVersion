@@ -14,17 +14,19 @@ namespace GitTreeVersion.Commands
     {
         public VersionCommand() : base("version", "Versions the thing")
         {
-            Handler = CommandHandler.Create<bool, bool>(Execute);
+            Handler = CommandHandler.Create<bool, bool, string?>(Execute);
 
             AddOption(new Option<bool>("--apply"));
+            AddArgument(new Argument<string?>("path", () => null));
         }
 
-        private void Execute(bool apply, bool debug)
+        private void Execute(bool apply, bool debug, string? path)
         {
             Log.IsDebug = debug;
+            path ??= Environment.CurrentDirectory;
 
             var stopwatch = Stopwatch.StartNew();
-            var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
+            var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(path));
 
             Console.WriteLine($"Repository root: {fileGraph.RepositoryRootPath}");
             Console.WriteLine($"Version root: {fileGraph.VersionRootPath}");

@@ -13,7 +13,7 @@ namespace GitTreeVersion.VersionStrategies
 
             if (newestCommit is null)
             {
-                throw new InvalidOperationException($"No newest commit found for paths: {string.Join(", ", relevantPaths)}");
+                throw new InvalidOperationException($"No newest commit found for paths: {string.Join(", ", relevantPaths.Select(p => p.FullName))}");
             }
 
             var newestCommitTimestamp = DateTimeOffset.FromUnixTimeSeconds(newestCommit.Value);

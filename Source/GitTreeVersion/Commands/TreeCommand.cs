@@ -15,15 +15,19 @@ namespace GitTreeVersion.Commands
     {
         public TreeCommand() : base("tree", "Render repository tree")
         {
-            Handler = CommandHandler.Create<bool>(Execute);
+            Handler = CommandHandler.Create<bool, string?>(Execute);
+
+            AddArgument(new Argument<string?>("path", () => null));
         }
 
-        private void Execute(bool debug)
+        private void Execute(bool debug, string? path)
         {
             Log.IsDebug = debug;
+            path ??= Environment.CurrentDirectory;
+
             var stopwatch = Stopwatch.StartNew();
 
-            var graph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(Environment.CurrentDirectory));
+            var graph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(path));
 
             var rootVersionPath = graph.VersionRootPath;
 
@@ -48,7 +52,7 @@ namespace GitTreeVersion.Commands
             }
 
             var childVersionRoots = graph.VersionRootParents
-                .Where(p => p.Value.HasValue && p.Value.Value == versionRootPath)
+                .Where(p => p.Value is not null && p.Value == versionRootPath)
                 .Select(x => x.Key);
 
             foreach (var childVersionRoot in childVersionRoots)

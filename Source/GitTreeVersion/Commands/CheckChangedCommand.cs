@@ -9,14 +9,17 @@ namespace GitTreeVersion.Commands
     {
         public CheckChangedCommand() : base("check-changed", "Checks if relevant files have changed")
         {
-            Handler = CommandHandler.Create<bool>(Execute);
+            Handler = CommandHandler.Create<bool, string?>(Execute);
+
+            AddArgument(new Argument<string?>("path", () => null));
         }
 
-        private void Execute(bool debug)
+        private void Execute(bool debug, string? path)
         {
             Log.IsDebug = debug;
+            path ??= Environment.CurrentDirectory;
 
-            var output = Git.RunGit(new AbsoluteDirectoryPath(Environment.CurrentDirectory), "rev-list", "--parents", "--max-count=1", "HEAD").Trim();
+            var output = Git.RunGit(new AbsoluteDirectoryPath(path), "rev-list", "--parents", "--max-count=1", "HEAD").Trim();
 
             var commitShas = output.Split(" ");
 
@@ -34,7 +37,7 @@ namespace GitTreeVersion.Commands
             Console.WriteLine("Relevant changed files:");
             Console.WriteLine();
 
-            Console.WriteLine(Git.RunGit(new AbsoluteDirectoryPath(Environment.CurrentDirectory), "diff", "--name-only", parent1, parent2).Trim());
+            Console.WriteLine(Git.RunGit(new AbsoluteDirectoryPath(path), "diff", "--name-only", parent1, parent2).Trim());
         }
     }
 }

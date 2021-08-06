@@ -239,7 +239,7 @@ namespace GitTreeVersion
 
         public static FileCommitContent[] FileCommitHistory(AbsoluteDirectoryPath repositoryPath, string filePath)
         {
-            var commits = GitCommits(repositoryPath, null, new []{ filePath });
+            var commits = GitCommits(repositoryPath, null, new[] { filePath });
 
             var args = new List<string>();
 
@@ -262,7 +262,7 @@ namespace GitTreeVersion
 
             for (var i = 0; i < splitOutput.Length; i += 2)
             {
-                list.Add(new FileCommitContent(splitOutput[i], splitOutput[i+1]));
+                list.Add(new FileCommitContent(splitOutput[i], splitOutput[i + 1]));
             }
 
             return list.ToArray();

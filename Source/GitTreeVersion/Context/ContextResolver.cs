@@ -19,13 +19,13 @@ namespace GitTreeVersion.Context
 
             var configFilePath = FindFileAbove(workingDirectory, VersionConfigFileName);
 
-            if (configFilePath == null)
+            if (configFilePath is null)
             {
-                return new FileGraph(repositoryRoot.Value, repositoryRoot.Value, buildEnvironmentDetector);
+                return new FileGraph(repositoryRoot, repositoryRoot, buildEnvironmentDetector);
             }
 
-            var versionRootPath = configFilePath.Value.Parent;
-            return new FileGraph(repositoryRoot.Value, versionRootPath, buildEnvironmentDetector);
+            var versionRootPath = configFilePath.Parent;
+            return new FileGraph(repositoryRoot, versionRootPath, buildEnvironmentDetector);
         }
 
         private static AbsoluteFilePath? FindFileAbove(AbsoluteDirectoryPath directory, string fileName)

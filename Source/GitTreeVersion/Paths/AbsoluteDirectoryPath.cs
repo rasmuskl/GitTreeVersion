@@ -5,36 +5,14 @@ using System.Linq;
 
 namespace GitTreeVersion.Paths
 {
-    public readonly struct AbsoluteDirectoryPath
+    public class AbsoluteDirectoryPath
     {
         private static readonly char[] PathSeparators = { '/', '\\' };
 
         public AbsoluteDirectoryPath(string path)
         {
             Debug.Assert(Path.IsPathRooted(path));
-            FullName = path;
-        }
-
-        public AbsoluteFilePath CombineToFile(params string[] relativePaths)
-        {
-            var paths = new[] { FullName }
-                .Concat(relativePaths
-                    .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
-                .ToArray();
-
-            var filePath = Path.GetFullPath(Path.Combine(paths));
-            return new AbsoluteFilePath(filePath);
-        }
-
-        public AbsoluteDirectoryPath CombineToDirectory(params string[] relativePaths)
-        {
-            var paths = new[] { FullName }
-                .Concat(relativePaths
-                    .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
-                .ToArray();
-
-            var filePath = Path.GetFullPath(Path.Combine(paths));
-            return new AbsoluteDirectoryPath(filePath);
+            FullName = Path.TrimEndingDirectorySeparator(path);
         }
 
         public AbsoluteDirectoryPath Parent
@@ -57,6 +35,28 @@ namespace GitTreeVersion.Paths
         public string Name => Path.GetFileName(FullName);
         public bool Exists => Directory.Exists(FullName);
         public string FullName { get; }
+
+        public AbsoluteFilePath CombineToFile(params string[] relativePaths)
+        {
+            var paths = new[] { FullName }
+                .Concat(relativePaths
+                    .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
+                .ToArray();
+
+            var filePath = Path.GetFullPath(Path.Combine(paths));
+            return new AbsoluteFilePath(filePath);
+        }
+
+        public AbsoluteDirectoryPath CombineToDirectory(params string[] relativePaths)
+        {
+            var paths = new[] { FullName }
+                .Concat(relativePaths
+                    .SelectMany(p => p.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries)))
+                .ToArray();
+
+            var filePath = Path.GetFullPath(Path.Combine(paths));
+            return new AbsoluteDirectoryPath(filePath);
+        }
 
         public override string ToString()
         {
