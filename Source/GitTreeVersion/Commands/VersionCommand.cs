@@ -4,8 +4,9 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.Linq;
 using GitTreeVersion.Context;
+using GitTreeVersion.Deployables.DotNet;
+using GitTreeVersion.Deployables.Npm;
 using GitTreeVersion.Paths;
-using GitTreeVersion.VersionAppliers;
 using Spectre.Console;
 
 namespace GitTreeVersion.Commands
@@ -46,7 +47,7 @@ namespace GitTreeVersion.Commands
 
                     if (deployable.Extension == ".csproj")
                     {
-                        new DotnetVersionApplier().ApplyVersion(deployable, version);
+                        new DotNetVersionApplier().ApplyVersion(deployable, version);
                     }
                     else if (deployable.FileName == "package.json")
                     {

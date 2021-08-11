@@ -4,7 +4,7 @@ using System.Text.Json;
 using GitTreeVersion.Paths;
 using Semver;
 
-namespace GitTreeVersion.VersionAppliers
+namespace GitTreeVersion.Deployables.Npm
 {
     public class NpmVersionApplier : IVersionApplier
     {

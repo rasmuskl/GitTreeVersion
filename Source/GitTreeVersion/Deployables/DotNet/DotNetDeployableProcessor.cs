@@ -4,9 +4,9 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using GitTreeVersion.Paths;
 
-namespace GitTreeVersion.Deployables
+namespace GitTreeVersion.Deployables.DotNet
 {
-    public class DotnetDeployableProcessor
+    public class DotNetDeployableProcessor
     {
         public AbsoluteFilePath[] GetSourceReferencedDeployablePaths(AbsoluteFilePath filePath)
         {

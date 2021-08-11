@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using GitTreeVersion.Paths;
 
-namespace GitTreeVersion.BuildEnvironments
+namespace GitTreeVersion.BuildEnvironments.AzureDevOps
 {
     public class AzureDevOpsBuildEnvironment : IBuildEnvironment
     {

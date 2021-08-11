@@ -1,7 +1,7 @@
 ﻿using GitTreeVersion.Paths;
 using Semver;
 
-namespace GitTreeVersion.VersionAppliers
+namespace GitTreeVersion.Deployables
 {
     public interface IVersionApplier
     {

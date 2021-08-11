@@ -27,7 +27,7 @@ namespace GitTreeVersion.Commands
             Console.WriteLine($"Version root path: {versionRootPath}");
 
             var bumper = new Bumper();
-            bumper.Bump(versionRootPath, (VersionType) type);
+            bumper.Bump(versionRootPath, (VersionType)type);
         }
 
         private enum VersionTypeOptions

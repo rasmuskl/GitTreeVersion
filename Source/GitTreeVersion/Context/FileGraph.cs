@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using GitTreeVersion.BuildEnvironments;
-using GitTreeVersion.Deployables;
+using GitTreeVersion.Deployables.DotNet;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Context
@@ -80,7 +80,7 @@ namespace GitTreeVersion.Context
             var deployableVersionRoots = new Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath>();
             var deployableDependencies = new Dictionary<AbsoluteFilePath, AbsoluteFilePath[]>();
             var deployableQueue = new Queue<AbsoluteFilePath>(relevantDeployableFilePaths);
-            var dotnetDeployableProcessor = new DotnetDeployableProcessor();
+            var dotnetDeployableProcessor = new DotNetDeployableProcessor();
 
             var deployableFilePaths = new HashSet<AbsoluteFilePath>();
 
