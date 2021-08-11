@@ -1,18 +1,19 @@
 ﻿using System.Linq;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
 {
     public class MinorFileBumpVersionStrategy : IVersionStrategy
     {
-        public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath,
-            AbsoluteDirectoryPath[] relevantPaths, string? range)
+        public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
         {
+            var gitDirectory = new GitDirectory(versionRootPath);
             var minor = 0;
 
             if (range is null)
             {
-                var minorVersionFiles = Git.GitFindFiles(versionRootPath, new[] { ":(glob).version/minor/*" });
+                var minorVersionFiles = gitDirectory.GitFindFiles(new[] { ":(glob).version/minor/*" });
 
                 foreach (var file in minorVersionFiles)
                 {
@@ -22,7 +23,7 @@ namespace GitTreeVersion.VersionStrategies
                 if (minorVersionFiles.Any())
                 {
                     minor = minorVersionFiles.Length;
-                    var minorVersionCommits = Git.GitCommits(versionRootPath, null, new[] { ":(glob).version/minor/*" },
+                    var minorVersionCommits = gitDirectory.GitCommits(null, new[] { ":(glob).version/minor/*" },
                         diffFilter: "A");
 
                     foreach (var commit in minorVersionCommits)
@@ -38,7 +39,7 @@ namespace GitTreeVersion.VersionStrategies
             }
             else
             {
-                var changedMinorFiles = Git.GitDiffFileNames(versionRootPath, range, ":(glob).version/minor/*");
+                var changedMinorFiles = gitDirectory.GitDiffFileNames(range, ":(glob).version/minor/*");
 
                 foreach (var file in changedMinorFiles)
                 {
@@ -47,8 +48,7 @@ namespace GitTreeVersion.VersionStrategies
 
                 minor = changedMinorFiles.Length;
 
-                var minorVersionCommits =
-                    Git.GitCommits(versionRootPath, range, changedMinorFiles.ToArray(), diffFilter: "A");
+                var minorVersionCommits = gitDirectory.GitCommits(range, changedMinorFiles.ToArray(), diffFilter: "A");
 
                 foreach (var commit in minorVersionCommits)
                 {

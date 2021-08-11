@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Deployables.DotNet;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Context
@@ -16,7 +17,7 @@ namespace GitTreeVersion.Context
             RepositoryRootPath = repositoryRootPath;
             VersionRootPath = versionRootPath;
 
-            CurrentBranch = Git.GitCurrentBranch(repositoryRootPath);
+            CurrentBranch = new GitDirectory(repositoryRootPath).GitCurrentBranch();
             BuildEnvironment = (buildEnvironmentDetector ?? new BuildEnvironmentDetector()).GetBuildEnvironment();
 
             var rootStack = new Stack<AbsoluteDirectoryPath>();
@@ -29,7 +30,8 @@ namespace GitTreeVersion.Context
             versionRootPaths.Add(versionRootPath);
             versionRootParents[versionRootPath] = null;
 
-            var versionDirectoryPaths = Git.GitFindFiles(VersionRootPath, new[] { ":(glob)**/version.json" }, true)
+            var gitDirectory = new GitDirectory(VersionRootPath);
+            var versionDirectoryPaths = gitDirectory.GitFindFiles(new[] { ":(glob)**/version.json" }, true)
                 .Select(Path.GetDirectoryName)
                 .OrderBy(p => p);
 
@@ -72,7 +74,7 @@ namespace GitTreeVersion.Context
             VersionRootParents = versionRootParents;
             VersionRootConfigs = versionRootConfigs;
 
-            var relevantDeployableFiles = Git.GitFindFiles(VersionRootPath, new[] { ":(glob)**/*.csproj", ":(glob)**/package.json" }, true);
+            var relevantDeployableFiles = gitDirectory.GitFindFiles(new[] { ":(glob)**/*.csproj", ":(glob)**/package.json" }, true);
 
             var relevantDeployableFilePaths = relevantDeployableFiles
                 .Select(f => VersionRootPath.CombineToFile(f));

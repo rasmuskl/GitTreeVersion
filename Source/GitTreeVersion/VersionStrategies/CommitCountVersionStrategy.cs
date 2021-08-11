@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
@@ -7,7 +8,8 @@ namespace GitTreeVersion.VersionStrategies
     {
         public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
         {
-            var commits = Git.GitCommits(versionRootPath, range, relevantPaths.Select(p => p.ToString()).ToArray());
+            var gitDirectory = new GitDirectory(versionRootPath);
+            var commits = gitDirectory.GitCommits(range, relevantPaths.Select(p => p.ToString()).ToArray());
             var patch = commits.Length;
 
             return new VersionComponent(patch, null);

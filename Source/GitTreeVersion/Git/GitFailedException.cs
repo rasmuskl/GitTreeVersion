@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GitTreeVersion
+namespace GitTreeVersion.Git
 {
     public class GitFailedException : Exception
     {

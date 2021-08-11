@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
@@ -8,8 +9,9 @@ namespace GitTreeVersion.VersionStrategies
     {
         public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
         {
+            var gitDirectory = new GitDirectory(versionRootPath);
             var pathSpecs = relevantPaths.Select(p => p.ToString()).ToArray();
-            var newestCommit = Git.GitNewestCommitUnixTimeSeconds(versionRootPath, null, pathSpecs);
+            var newestCommit = gitDirectory.GitNewestCommitUnixTimeSeconds(null, pathSpecs);
 
             if (newestCommit is null)
             {
@@ -24,7 +26,7 @@ namespace GitTreeVersion.VersionStrategies
 
             Log.Debug($"Since date: {newestCommitDate}");
 
-            var gitCommits = Git.GitCommits(versionRootPath, null, pathSpecs, newestCommitDate, newestCommitTimestamp);
+            var gitCommits = gitDirectory.GitCommits(null, pathSpecs, newestCommitDate, newestCommitTimestamp);
             var firstOnDate = gitCommits.Last();
             Log.Debug($"First on date: {firstOnDate}");
             range = $"{firstOnDate}..";

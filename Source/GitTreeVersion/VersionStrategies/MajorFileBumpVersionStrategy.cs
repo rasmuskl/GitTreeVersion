@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
@@ -7,7 +8,9 @@ namespace GitTreeVersion.VersionStrategies
     {
         public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
         {
-            var majorVersionFiles = Git.GitFindFiles(versionRootPath, new[] { ":(glob).version/major/*" });
+            var gitDirectory = new GitDirectory(versionRootPath);
+
+            var majorVersionFiles = gitDirectory.GitFindFiles(new[] { ":(glob).version/major/*" });
 
             foreach (var file in majorVersionFiles)
             {
@@ -16,7 +19,7 @@ namespace GitTreeVersion.VersionStrategies
 
             if (majorVersionFiles.Any())
             {
-                string[] majorVersionCommits = Git.GitCommits(versionRootPath, null, new[] { ":(glob).version/major/*" }, diffFilter: "A");
+                string[] majorVersionCommits = gitDirectory.GitCommits(null, new[] { ":(glob).version/major/*" }, diffFilter: "A");
 
                 foreach (var majorVersionCommit in majorVersionCommits)
                 {

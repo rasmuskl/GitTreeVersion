@@ -6,6 +6,7 @@ using System.Text.Json;
 using FluentAssertions;
 using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Context;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 using LibGit2Sharp;
 using NUnit.Framework;
@@ -342,7 +343,8 @@ namespace GitTreeVersion.Tests
 
             var filePath = Path.Combine(repositoryPath.ToString(), ContextResolver.VersionConfigFileName);
 
-            var commitContents = Git.FileCommitHistory(repositoryPath, filePath);
+            var gitDirectory = new GitDirectory(repositoryPath);
+            var commitContents = gitDirectory.FileCommitHistory(filePath);
 
             commitContents.Length.Should().Be(versionConfigs.Length);
 
@@ -361,20 +363,23 @@ namespace GitTreeVersion.Tests
 
         private static void MoveAndCommitFile(AbsoluteDirectoryPath repositoryPath, AbsoluteFilePath sourceFile, AbsoluteFilePath targetFile)
         {
+            var gitDirectory = new GitDirectory(repositoryPath);
+
             File.Move(sourceFile.ToString(), targetFile.ToString());
-            Git.RunGit(repositoryPath, "add", "--all");
+            gitDirectory.RunGit("add", "--all");
 
-            var relativeSourcePath = Path.GetRelativePath(repositoryPath.ToString(), sourceFile.ToString());
-            var relativeTargetPath = Path.GetRelativePath(repositoryPath.ToString(), targetFile.ToString());
+            var relativeSourcePath = Path.GetRelativePath(repositoryPath.FullName, sourceFile.ToString());
+            var relativeTargetPath = Path.GetRelativePath(repositoryPath.FullName, targetFile.ToString());
 
-            Git.RunGit(repositoryPath, "commit", "--all", "--message", $"move {relativeSourcePath} to {relativeTargetPath}");
+            gitDirectory.RunGit("commit", "--all", "--message", $"move {relativeSourcePath} to {relativeTargetPath}");
         }
 
         private static IEnvironmentAccessor SimulateAzureDevOpsPullRequest(AbsoluteDirectoryPath repositoryPath, string branchName, int pullRequestId)
         {
             var environmentVariables = new Dictionary<string, string?>();
 
-            var currentCommit = Git.RunGit(repositoryPath, "rev-parse", branchName).Trim();
+            var gitDirectory = new GitDirectory(repositoryPath);
+            var currentCommit = gitDirectory.RunGit("rev-parse", branchName).Trim();
 
             var pullRef = $"pull/{pullRequestId}/pull";
             var mergeRef = $"pull/{pullRequestId}/merge";
@@ -382,11 +387,11 @@ namespace GitTreeVersion.Tests
             environmentVariables.Add("SYSTEM_PULLREQUEST_PULLREQUESTID", pullRequestId.ToString());
 
             // Source: https://stackoverflow.com/a/42634501
-            Git.RunGit(repositoryPath, "update-ref", pullRef, currentCommit);
-            Git.RunGit(repositoryPath, "checkout", "master");
-            Git.RunGit(repositoryPath, "merge", "--no-ff", pullRef);
-            Git.RunGit(repositoryPath, "update-ref", mergeRef, "HEAD");
-            Git.RunGit(repositoryPath, "checkout", mergeRef);
+            gitDirectory.RunGit( "update-ref", pullRef, currentCommit);
+            gitDirectory.RunGit("checkout", "master");
+            gitDirectory.RunGit("merge", "--no-ff", pullRef);
+            gitDirectory.RunGit("update-ref", mergeRef, "HEAD");
+            gitDirectory.RunGit("checkout", mergeRef);
 
             // git status at this point gives:
             //
@@ -446,8 +451,10 @@ namespace GitTreeVersion.Tests
         private void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig, string? commitMessage = null)
         {
             WriteVersionConfig(repositoryPath, versionConfig);
-            Git.RunGit(repositoryPath, "add", "--all");
-            Git.RunGit(repositoryPath, "commit", "--all", "--message", commitMessage ?? Guid.NewGuid().ToString());
+
+            var gitDirectory = new GitDirectory(repositoryPath);
+            gitDirectory.RunGit("add", "--all");
+            gitDirectory.RunGit("commit", "--all", "--message", commitMessage ?? Guid.NewGuid().ToString());
         }
 
         private AbsoluteFilePath WriteVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
@@ -460,14 +467,17 @@ namespace GitTreeVersion.Tests
 
         private static void MergeBranchToMaster(AbsoluteDirectoryPath repositoryPath, string branchName, bool fastForward = false)
         {
-            Git.RunGit(repositoryPath, "checkout", "master");
-            Git.RunGit(repositoryPath, "merge", fastForward ? "--ff" : "--no-ff", branchName);
+            var gitDirectory = new GitDirectory(repositoryPath);
+
+            gitDirectory.RunGit("checkout", "master");
+            gitDirectory.RunGit("merge", fastForward ? "--ff" : "--no-ff", branchName);
         }
 
         private static string CreateBranch(AbsoluteDirectoryPath repositoryPath, string? branchName = null)
         {
             branchName ??= Guid.NewGuid().ToString();
-            Git.RunGit(repositoryPath, "checkout", "-b", branchName);
+            var gitDirectory = new GitDirectory(repositoryPath);
+            gitDirectory.RunGit("checkout", "-b", branchName);
             return branchName;
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Commands
@@ -19,7 +20,8 @@ namespace GitTreeVersion.Commands
             Log.IsDebug = debug;
             path ??= Environment.CurrentDirectory;
 
-            var output = Git.RunGit(new AbsoluteDirectoryPath(path), "rev-list", "--parents", "--max-count=1", "HEAD").Trim();
+            var gitDirectory = new GitDirectory(new AbsoluteDirectoryPath(path));
+            var output = gitDirectory.RunGit("rev-list", "--parents", "--max-count=1", "HEAD").Trim();
 
             var commitShas = output.Split(" ");
 
@@ -37,7 +39,7 @@ namespace GitTreeVersion.Commands
             Console.WriteLine("Relevant changed files:");
             Console.WriteLine();
 
-            Console.WriteLine(Git.RunGit(new AbsoluteDirectoryPath(path), "diff", "--name-only", parent1, parent2).Trim());
+            Console.WriteLine(gitDirectory.RunGit("diff", "--name-only", parent1, parent2).Trim());
         }
     }
 }

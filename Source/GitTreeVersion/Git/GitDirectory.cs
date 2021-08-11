@@ -7,12 +7,18 @@ using System.Text;
 using System.Text.RegularExpressions;
 using GitTreeVersion.Paths;
 
-namespace GitTreeVersion
+namespace GitTreeVersion.Git
 {
-    public static class Git
+    public class GitDirectory
     {
-        public static string[] GitNonMerges(AbsoluteDirectoryPath workingDirectory, string? range,
-            AbsoluteDirectoryPath[] pathSpecs)
+        private readonly AbsoluteDirectoryPath _workingDirectory;
+
+        public GitDirectory(AbsoluteDirectoryPath workingDirectory)
+        {
+            _workingDirectory = workingDirectory;
+        }
+
+        public string[] GitNonMerges(string? range, AbsoluteDirectoryPath[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -28,12 +34,11 @@ namespace GitTreeVersion
                 arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
             }
 
-            var output = RunGit(workingDirectory, arguments.ToArray());
+            var output = RunGit(arguments.ToArray());
             return output.SplitOutput();
         }
 
-        public static long? GitNewestCommitUnixTimeSeconds(AbsoluteDirectoryPath workingDirectory, string? range,
-            string[] pathSpecs)
+        public long? GitNewestCommitUnixTimeSeconds(string? range, string[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("log");
@@ -51,7 +56,7 @@ namespace GitTreeVersion
                 arguments.AddRange(pathSpecs);
             }
 
-            var output = RunGit(workingDirectory, arguments.ToArray());
+            var output = RunGit(arguments.ToArray());
             var unixTimeSeconds = output.SplitOutput().SingleOrDefault();
 
             if (unixTimeSeconds is null)
@@ -62,7 +67,7 @@ namespace GitTreeVersion
             return long.Parse(unixTimeSeconds);
         }
 
-        public static string[] GitCommits(AbsoluteDirectoryPath workingDirectory, string? range, string[] pathSpecs, DateTimeOffset? after = null, DateTimeOffset? before = null, string? diffFilter = null)
+        public string[] GitCommits(string? range, string[] pathSpecs, DateTimeOffset? after = null, DateTimeOffset? before = null, string? diffFilter = null)
         {
             var arguments = new List<string>();
             arguments.Add("log");
@@ -95,7 +100,7 @@ namespace GitTreeVersion
 
             try
             {
-                var output = RunGit(workingDirectory, arguments.ToArray());
+                var output = RunGit(arguments.ToArray());
                 return output.SplitOutput();
             }
             catch (GitFailedException e) when (e.ErrorOutput is "fatal: bad revision 'HEAD'")
@@ -105,15 +110,15 @@ namespace GitTreeVersion
             }
         }
 
-        public static string[] GitLastCommitHashes(AbsoluteDirectoryPath workingDirectory, string pathSpec)
+        public string[] GitLastCommitHashes(AbsoluteDirectoryPath workingDirectory, string pathSpec)
         {
-            var output = RunGit(workingDirectory, "rev-list", "HEAD", "--", pathSpec);
+            var output = RunGit("rev-list", "HEAD", "--", pathSpec);
             return output.SplitOutput();
         }
 
-        public static GitRef? GitCurrentBranch(AbsoluteDirectoryPath workingDirectory)
+        public GitRef? GitCurrentBranch()
         {
-            var output = RunGit(workingDirectory, "branch");
+            var output = RunGit("branch");
             var lines = output.SplitOutput();
 
             var branch = lines.FirstOrDefault(l => l.StartsWith("*"));
@@ -133,7 +138,7 @@ namespace GitTreeVersion
             return new GitRef(branch.TrimStart(' ', '*'), false);
         }
 
-        public static string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
+        public string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)
         {
             var arguments = new List<string>();
             arguments.Add("rev-list");
@@ -149,11 +154,11 @@ namespace GitTreeVersion
                 arguments.AddRange(pathSpecs.Select(ps => ps.ToString()));
             }
 
-            var output = RunGit(workingDirectory, arguments.ToArray());
+            var output = RunGit(arguments.ToArray());
             return output.SplitOutput();
         }
 
-        public static string[] GitFindFiles(AbsoluteDirectoryPath workingDirectory, string[] pathSpecs, bool includeUnstaged = false)
+        public string[] GitFindFiles(string[] pathSpecs, bool includeUnstaged = false)
         {
             var arguments = new List<string>();
             arguments.Add("ls-files");
@@ -171,11 +176,11 @@ namespace GitTreeVersion
                 arguments.AddRange(pathSpecs);
             }
 
-            var output = RunGit(workingDirectory, arguments.ToArray());
+            var output = RunGit(arguments.ToArray());
             return output.SplitOutput();
         }
 
-        public static string[] GitDiffFileNames(AbsoluteDirectoryPath workingDirectory, string? range, string? pathSpec)
+        public string[] GitDiffFileNames(string? range, string? pathSpec)
         {
             var arguments = new List<string>();
             arguments.Add("diff");
@@ -189,16 +194,16 @@ namespace GitTreeVersion
                 arguments.Add(pathSpec);
             }
 
-            var output = RunGit(workingDirectory, arguments.ToArray());
+            var output = RunGit(arguments.ToArray());
             return output.SplitOutput();
         }
 
-        public static string RunGit(AbsoluteDirectoryPath workingDirectory, params string[] arguments)
+        public string RunGit(params string[] arguments)
         {
             var startInfo = new ProcessStartInfo
             {
                 FileName = "git",
-                WorkingDirectory = workingDirectory.ToString(),
+                WorkingDirectory = _workingDirectory.ToString(),
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
@@ -237,9 +242,9 @@ namespace GitTreeVersion
             return outputBuilder.ToString();
         }
 
-        public static FileCommitContent[] FileCommitHistory(AbsoluteDirectoryPath repositoryPath, string filePath)
+        public FileCommitContent[] FileCommitHistory(string filePath)
         {
-            var commits = GitCommits(repositoryPath, null, new[] { filePath });
+            var commits = GitCommits(null, new[] { filePath });
 
             var args = new List<string>();
 
@@ -252,10 +257,10 @@ namespace GitTreeVersion
             foreach (var commit in commits)
             {
                 args.Add(commit);
-                args.Add($"{commit}:{Path.GetRelativePath(repositoryPath.FullName, filePath)}");
+                args.Add($"{commit}:{Path.GetRelativePath(_workingDirectory.FullName, filePath)}");
             }
 
-            var output = RunGit(repositoryPath, args.ToArray());
+            var output = RunGit(args.ToArray());
             var splitOutput = output.Split(marker, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             var list = new List<FileCommitContent>();
@@ -268,6 +273,4 @@ namespace GitTreeVersion
             return list.ToArray();
         }
     }
-
-    public record FileCommitContent(string CommitSha, string Content);
 }

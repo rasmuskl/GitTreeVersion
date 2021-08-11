@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.BuildEnvironments.AzureDevOps
@@ -21,7 +22,8 @@ namespace GitTreeVersion.BuildEnvironments.AzureDevOps
                 return null;
             }
 
-            var branchCommits = Git.GitCommits(versionRootPath, "HEAD^1..HEAD^2", relevantPaths.Select(p => p.FullName).ToArray());
+            var gitDirectory = new GitDirectory(versionRootPath);
+            var branchCommits = gitDirectory.GitCommits("HEAD^1..HEAD^2", relevantPaths.Select(p => p.FullName).ToArray());
             return $"PullRequest.{pullRequestId}.{branchCommits.Length}";
         }
     }

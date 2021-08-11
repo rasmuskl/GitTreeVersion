@@ -7,11 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitTreeVersion", "GitTreeVe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitTreeVersion.Tests", "GitTreeVersion.Tests\GitTreeVersion.Tests.csproj", "{0CF8B6CC-310C-465B-BD77-984FEA48A237}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{98043AC2-9A9C-4E00-9363-B402E935D1DD}"
-ProjectSection(SolutionItems) = preProject
-	.editorconfig = .editorconfig
-EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
