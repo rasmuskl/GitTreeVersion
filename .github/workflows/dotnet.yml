@@ -23,15 +23,15 @@ jobs:
     
     - name: Restore dependencies
       run: dotnet restore
-      working-directory: Source
+      working-directory: src
 
     - name: Version
       run: dotnet run --project GitTreeVersion -- version --apply
-      working-directory: Source
+      working-directory: src
 
     - name: Build
       run: dotnet build --no-restore
-      working-directory: Source
+      working-directory: src
 
     - name: Configure Git for tests
       run: |
@@ -40,14 +40,14 @@ jobs:
     
     - name: Test
       run: dotnet test --no-build --verbosity normal
-      working-directory: Source
+      working-directory: src
 
     - name: Pack
       run: dotnet pack --configuration Release
-      working-directory: Source
+      working-directory: src
 
     - name: NuGet push
       env:
         APIKEY: ${{ secrets.GitTreeVersionNuGetKey }}
       run: dotnet nuget push GitTreeVersion/bin/Release/GitTreeVersion.*.nupkg --api-key $APIKEY --source https://api.nuget.org/v3/index.json
-      working-directory: Source
+      working-directory: src
