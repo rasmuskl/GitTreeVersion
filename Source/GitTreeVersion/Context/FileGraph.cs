@@ -17,7 +17,9 @@ namespace GitTreeVersion.Context
             RepositoryRootPath = repositoryRootPath;
             VersionRootPath = versionRootPath;
 
-            CurrentBranch = new GitDirectory(repositoryRootPath).GitCurrentBranch();
+            var branchStatus = new GitDirectory(repositoryRootPath).GitCurrentBranch();
+            CurrentBranch = branchStatus.currentRef;
+            MainBranch = branchStatus.mainBranch;
             BuildEnvironment = (buildEnvironmentDetector ?? new BuildEnvironmentDetector()).GetBuildEnvironment();
 
             var rootStack = new Stack<AbsoluteDirectoryPath>();
@@ -149,6 +151,7 @@ namespace GitTreeVersion.Context
             DeployableFileVersionRoots = deployableVersionRoots;
         }
 
+        public GitRef? MainBranch { get; }
         public GitRef? CurrentBranch { get; }
         public IBuildEnvironment? BuildEnvironment { get; }
         public AbsoluteDirectoryPath RepositoryRootPath { get; }

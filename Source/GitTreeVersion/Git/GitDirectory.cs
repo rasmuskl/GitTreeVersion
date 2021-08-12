@@ -11,6 +11,7 @@ namespace GitTreeVersion.Git
 {
     public class GitDirectory
     {
+        private static readonly HashSet<string> _mainBranchNames = new(new[] { "master", "main" });
         private readonly AbsoluteDirectoryPath _workingDirectory;
 
         public GitDirectory(AbsoluteDirectoryPath workingDirectory)
@@ -116,26 +117,62 @@ namespace GitTreeVersion.Git
             return output.SplitOutput();
         }
 
-        public GitRef? GitCurrentBranch()
+        public (GitRef? currentRef, GitRef? mainBranch) GitCurrentBranch()
         {
             var output = RunGit("branch");
             var lines = output.SplitOutput();
+            var refs = new List<GitRef>();
+            GitRef? currentRef = null;
 
-            var branch = lines.FirstOrDefault(l => l.StartsWith("*"));
-
-            if (branch is null)
+            if (!lines.Any())
             {
-                return null;
+                return (null, null);
             }
 
-            var match = Regex.Match(branch, "(HEAD detached at (?<ref>[^)]*))");
-
-            if (match.Success)
+            foreach (var line in lines)
             {
-                return new GitRef(match.Groups["ref"].Value, true);
+                var current = line.StartsWith("*");
+
+                GitRef? lineRef;
+                var detachedMatch = Regex.Match(line, "(HEAD detached at (?<ref>[^)]*))");
+
+                if (detachedMatch.Success)
+                {
+                    lineRef = new GitRef(detachedMatch.Groups["ref"].Value, true);
+                }
+                else
+                {
+                    lineRef = new GitRef(line.TrimStart(' ', '*'), false);
+                }
+
+                if (current)
+                {
+                    currentRef = lineRef;
+                }
+
+                refs.Add(lineRef);
             }
 
-            return new GitRef(branch.TrimStart(' ', '*'), false);
+            if (currentRef == null)
+            {
+                throw new Exception("Current branch not found.");
+            }
+
+            var mainBranches = refs.Where(r => _mainBranchNames.Contains(r.Name)).ToArray();
+
+            if (mainBranches.Length != 1)
+            {
+                if (mainBranches.Length == 0)
+                {
+                    throw new Exception($"Main branch not found. Expected a branch with name: {string.Join(", ", _mainBranchNames)}");
+                }
+
+                throw new Exception($"Multiple main branches found. Expected 1 but found: {string.Join(", ", mainBranches.Select(b => b.Name))}");
+            }
+
+            var mainBranch = mainBranches.Single();
+
+            return (currentRef, mainBranch);
         }
 
         public string[] GitMerges(AbsoluteDirectoryPath workingDirectory, string? range, AbsoluteDirectoryPath[] pathSpecs)

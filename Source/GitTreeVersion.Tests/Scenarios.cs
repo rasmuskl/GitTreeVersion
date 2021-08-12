@@ -303,6 +303,30 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
+        public void MonotonicBranch()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            CommitNewFile(repositoryPath);
+
+            var branchName = CreateBranch(repositoryPath);
+
+            CommitNewFile(repositoryPath);
+            CommitNewFile(repositoryPath);
+
+            var branchVersion = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            MergeBranchToMaster(repositoryPath, branchName);
+
+            var mergedMasterVersion = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+
+            Console.WriteLine($"Branch: {branchVersion}");
+            Console.WriteLine($"Merged: {mergedMasterVersion}");
+
+            mergedMasterVersion.Should().BeGreaterOrEqualTo(branchVersion);
+        }
+
+        [Test]
         public void GitFileHistory()
         {
             var repositoryPath = CreateGitRepository();

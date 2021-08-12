@@ -1,14 +1,13 @@
 ﻿using System.Linq;
 using GitTreeVersion.Git;
-using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
 {
     public class MinorFileBumpVersionStrategy : IVersionStrategy
     {
-        public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
+        public VersionComponent GetVersionComponent(VersionComponentContext context, string? range)
         {
-            var gitDirectory = new GitDirectory(versionRootPath);
+            var gitDirectory = new GitDirectory(context.VersionRootPath);
             var minor = 0;
 
             if (range is null)

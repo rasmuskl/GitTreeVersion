@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Linq;
 using GitTreeVersion.Git;
-using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
 {
     public class FullDateVersionStrategy : IVersionStrategy
     {
-        public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
+        public VersionComponent GetVersionComponent(VersionComponentContext context, string? range)
         {
-            var gitDirectory = new GitDirectory(versionRootPath);
-            var pathSpecs = relevantPaths.Select(p => p.ToString()).ToArray();
+            var gitDirectory = new GitDirectory(context.VersionRootPath);
+            var pathSpecs = context.RelevantPaths.Select(p => p.ToString()).ToArray();
             var newestCommit = gitDirectory.GitNewestCommitUnixTimeSeconds(null, pathSpecs);
 
             if (newestCommit is null)
             {
-                throw new InvalidOperationException($"No newest commit found for paths: {string.Join(", ", relevantPaths.Select(p => p.FullName))}");
+                throw new InvalidOperationException($"No newest commit found for paths: {string.Join(", ", context.RelevantPaths.Select(p => p.FullName))}");
             }
 
             var newestCommitTimestamp = DateTimeOffset.FromUnixTimeSeconds(newestCommit.Value);

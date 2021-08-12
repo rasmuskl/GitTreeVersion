@@ -1,9 +1,7 @@
-﻿using GitTreeVersion.Paths;
-
-namespace GitTreeVersion.VersionStrategies
+﻿namespace GitTreeVersion.VersionStrategies
 {
     public interface IVersionStrategy
     {
-        VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range);
+        VersionComponent GetVersionComponent(VersionComponentContext context, string? range);
     }
 }

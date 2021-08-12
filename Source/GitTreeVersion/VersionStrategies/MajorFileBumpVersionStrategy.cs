@@ -1,14 +1,13 @@
 ﻿using System.Linq;
 using GitTreeVersion.Git;
-using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
 {
     public class MajorFileBumpVersionStrategy : IVersionStrategy
     {
-        public VersionComponent GetVersionComponent(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths, string? range)
+        public VersionComponent GetVersionComponent(VersionComponentContext context, string? range)
         {
-            var gitDirectory = new GitDirectory(versionRootPath);
+            var gitDirectory = new GitDirectory(context.VersionRootPath);
 
             var majorVersionFiles = gitDirectory.GitFindFiles(new[] { ":(glob).version/major/*" });
 

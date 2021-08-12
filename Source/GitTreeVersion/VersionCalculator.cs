@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using GitTreeVersion.Context;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 using GitTreeVersion.VersionStrategies;
 using Semver;
@@ -30,9 +31,10 @@ namespace GitTreeVersion
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
             var prerelease = GetPrerelease(graph, versionRootPath, relevantPaths);
 
-            var majorComponent = versionConfiguration.Major.GetVersionComponent(versionRootPath, relevantPaths, null);
-            var minorComponent = versionConfiguration.Minor.GetVersionComponent(versionRootPath, relevantPaths, majorComponent.Range);
-            var patchComponent = versionConfiguration.Patch.GetVersionComponent(versionRootPath, relevantPaths, minorComponent.Range);
+            var versionComponentContext = new VersionComponentContext(versionRootPath, relevantPaths, prerelease, graph.CurrentBranch, graph.MainBranch);
+            var majorComponent = versionConfiguration.Major.GetVersionComponent(versionComponentContext, null);
+            var minorComponent = versionConfiguration.Minor.GetVersionComponent(versionComponentContext, majorComponent.Range);
+            var patchComponent = versionConfiguration.Patch.GetVersionComponent(versionComponentContext, minorComponent.Range);
 
             return new SemVersion(majorComponent.Version, minorComponent.Version, patchComponent.Version, prerelease);
         }
@@ -70,4 +72,6 @@ namespace GitTreeVersion
             return branchName.Trim();
         }
     }
+
+    public record VersionComponentContext(AbsoluteDirectoryPath VersionRootPath, AbsoluteDirectoryPath[] RelevantPaths, string? Prerelease, GitRef? CurrentBranch, GitRef? MainBranch);
 }
