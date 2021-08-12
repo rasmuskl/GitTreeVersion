@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 using GitTreeVersion.Context;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
@@ -48,14 +49,23 @@ namespace GitTreeVersion
                 return prerelease;
             }
 
-            if (graph.CurrentBranch is { IsDetached: false } branch)
+            if (graph.CurrentBranch is { IsDetached: false } branch && graph.MainBranch is not null)
             {
-                return branch.Name switch
+                if (graph.CurrentBranch == graph.MainBranch)
                 {
-                    "main" => null,
-                    "master" => null,
-                    var name => SanitizeBranchName(name),
-                };
+                    return null;
+                }
+
+                var branchName = SanitizeBranchName(branch.Name);
+
+                if (string.IsNullOrEmpty(branchName))
+                {
+                    return null;
+                }
+
+                var gitDirectory = new GitDirectory(versionRootPath);
+                var branchCommits = gitDirectory.GitCommits($"{graph.MainBranch.Name}..{graph.CurrentBranch.Name}", relevantPaths.Select(p => p.FullName).ToArray());
+                return $"{branchName}.{branchCommits.Length}";
             }
 
             return null;
