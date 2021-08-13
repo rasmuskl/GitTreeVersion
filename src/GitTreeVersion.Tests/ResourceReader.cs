@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 
 namespace GitTreeVersion.Tests
@@ -11,6 +12,12 @@ namespace GitTreeVersion.Tests
         public static string ReadAsString(string resourceName)
         {
             using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"GitTreeVersion.Tests.Resources.{resourceName}");
+
+            if (stream is null)
+            {
+                throw new Exception($"Resource not found: {resourceName}");
+            }
+
             using var streamReader = new StreamReader(stream);
             return streamReader.ReadToEnd();
         }

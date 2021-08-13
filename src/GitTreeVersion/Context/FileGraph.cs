@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using GitTreeVersion.BuildEnvironments;
-using GitTreeVersion.Deployables.DotNet;
+using GitTreeVersion.Deployables;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
@@ -12,6 +11,8 @@ namespace GitTreeVersion.Context
 {
     public class FileGraph
     {
+        private readonly DeployableResolver _deployableResolver = new();
+
         public FileGraph(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath versionRootPath, BuildEnvironmentDetector? buildEnvironmentDetector)
         {
             RepositoryRootPath = repositoryRootPath;
@@ -83,10 +84,10 @@ namespace GitTreeVersion.Context
 
             var deployableVersionRoots = new Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath>();
             var deployableDependencies = new Dictionary<AbsoluteFilePath, AbsoluteFilePath[]>();
-            var deployableQueue = new Queue<AbsoluteFilePath>(relevantDeployableFilePaths);
-            var dotnetDeployableProcessor = new DotNetDeployableProcessor();
-
             var deployableFilePaths = new HashSet<AbsoluteFilePath>();
+            var deployables = new List<IDeployable>();
+
+            var deployableQueue = new Queue<AbsoluteFilePath>(relevantDeployableFilePaths);
 
             while (deployableQueue.TryDequeue(out var deployableFilePath))
             {
@@ -101,40 +102,33 @@ namespace GitTreeVersion.Context
                     continue;
                 }
 
-                var fileName = deployableFilePath.FileName;
+                var deployable = _deployableResolver.Resolve(deployableFilePath);
 
-                if (fileName == "package.json")
-                {
-                    deployableDependencies[deployableFilePath] = Array.Empty<AbsoluteFilePath>();
-                }
-                else if (deployableFilePath.Extension == ".csproj" || deployableFilePath.Extension == ".vbproj")
-                {
-                    var referencedDeployablePaths = dotnetDeployableProcessor.GetSourceReferencedDeployablePaths(deployableFilePath);
-                    deployableDependencies[deployableFilePath] = referencedDeployablePaths;
-
-                    foreach (var path in referencedDeployablePaths)
-                    {
-                        if (deployableDependencies.ContainsKey(path))
-                        {
-                            continue;
-                        }
-
-                        deployableQueue.Enqueue(path);
-                    }
-                }
-                else
+                if (deployable is null)
                 {
                     Log.Warning($"Unknown deployable: {deployableFilePath}");
                     continue;
                 }
 
+                deployables.Add(deployable);
+
+                foreach (var path in deployable.ReferencedDeployablePaths)
+                {
+                    if (deployableFilePaths.Contains(path))
+                    {
+                        continue;
+                    }
+
+                    deployableQueue.Enqueue(path);
+                }
+
                 deployableFilePaths.Add(deployableFilePath);
             }
 
-            foreach (var deployableFilePath in deployableFilePaths)
+            foreach (var deployable in deployables)
             {
                 var deployableVersionRoot = versionRootPaths
-                    .Where(p => deployableFilePath.IsInSubPathOf(p))
+                    .Where(p => deployable.FilePath.IsInSubPathOf(p))
                     .OrderByDescending(p => p.PathLength)
                     .FirstOrDefault();
 
@@ -143,12 +137,12 @@ namespace GitTreeVersion.Context
                     continue;
                 }
 
-                deployableVersionRoots[deployableFilePath] = deployableVersionRoot;
+                deployableVersionRoots[deployable.FilePath] = deployableVersionRoot;
             }
 
-            DeployableFilePaths = deployableFilePaths.ToArray();
             DeployableFileDependencies = deployableDependencies;
             DeployableFileVersionRoots = deployableVersionRoots;
+            Deployables = deployables.ToDictionary(d => d.FilePath, d => d);
         }
 
         public GitRef? MainBranch { get; }
@@ -156,7 +150,7 @@ namespace GitTreeVersion.Context
         public IBuildEnvironment? BuildEnvironment { get; }
         public AbsoluteDirectoryPath RepositoryRootPath { get; }
         public AbsoluteDirectoryPath VersionRootPath { get; }
-        public AbsoluteFilePath[] DeployableFilePaths { get; }
+        public Dictionary<AbsoluteFilePath, IDeployable> Deployables { get; }
         public Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath> DeployableFileVersionRoots { get; }
         public Dictionary<AbsoluteFilePath, AbsoluteFilePath[]> DeployableFileDependencies { get; }
 
@@ -170,8 +164,10 @@ namespace GitTreeVersion.Context
                 .Where(p => p.IsInSubPathOf(versionRootPath))
                 .ToArray();
 
-            var nestedDeployables = GetReachableDeployables(DeployableFilePaths
-                    .Where(fp => nestedVersionRoots.Any(fp.IsInSubPathOf)))
+            var nestedDeployables = GetReachableDeployables(Deployables
+                    .Values
+                    .Select(d => d.FilePath)
+                    .Where(d => nestedVersionRoots.Any(d.IsInSubPathOf)))
                 .ToArray();
 
             var relevantDirectories = nestedVersionRoots
@@ -180,8 +176,8 @@ namespace GitTreeVersion.Context
                 .ToArray();
 
             var paths = new List<AbsoluteDirectoryPath>();
-            AbsoluteDirectoryPath? previous = null;
 
+            AbsoluteDirectoryPath? previous = null;
             foreach (var relevantDirectory in relevantDirectories)
             {
                 if (previous is not null && relevantDirectory.IsInSubPathOf(previous))
@@ -199,7 +195,6 @@ namespace GitTreeVersion.Context
             }
 
             paths.RemoveAll(p => !p.IsInSubPathOf(RepositoryRootPath));
-
             return paths.ToArray();
         }
 

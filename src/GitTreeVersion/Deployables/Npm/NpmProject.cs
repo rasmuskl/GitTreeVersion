@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using GitTreeVersion.Paths;
@@ -6,11 +7,20 @@ using Semver;
 
 namespace GitTreeVersion.Deployables.Npm
 {
-    public class NpmVersionApplier : IVersionApplier
+    public class NpmProject : IDeployable
     {
-        public void ApplyVersion(AbsoluteFilePath filePath, SemVersion version)
+        public NpmProject(AbsoluteFilePath filePath)
         {
-            var json = File.ReadAllText(filePath.FullName);
+            FilePath = filePath;
+            ReferencedDeployablePaths = Array.Empty<AbsoluteFilePath>();
+        }
+
+        public AbsoluteFilePath FilePath { get; }
+        public AbsoluteFilePath[] ReferencedDeployablePaths { get; }
+
+        public void ApplyVersion(SemVersion version)
+        {
+            var json = File.ReadAllText(FilePath.FullName);
             var versionWritten = false;
 
             using var memoryStream = new MemoryStream();
@@ -46,7 +56,7 @@ namespace GitTreeVersion.Deployables.Npm
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             var resultJson = Encoding.UTF8.GetString(memoryStream.ToArray());
-            File.WriteAllText(filePath.FullName, resultJson);
+            File.WriteAllText(FilePath.FullName, resultJson);
         }
     }
 }

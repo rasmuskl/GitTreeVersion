@@ -7,11 +7,20 @@ using Semver;
 
 namespace GitTreeVersion.Deployables.DotNet
 {
-    public class DotNetVersionApplier : IVersionApplier
+    public class DotNetSdkStyleProject : IDeployable
     {
-        public void ApplyVersion(AbsoluteFilePath filePath, SemVersion version)
+        public DotNetSdkStyleProject(AbsoluteFilePath filePath, AbsoluteFilePath[] referencedDeployablePaths)
         {
-            var document = XDocument.Load(filePath.FullName, LoadOptions.PreserveWhitespace);
+            FilePath = filePath;
+            ReferencedDeployablePaths = referencedDeployablePaths;
+        }
+
+        public AbsoluteFilePath FilePath { get; }
+        public AbsoluteFilePath[] ReferencedDeployablePaths { get; }
+
+        public void ApplyVersion(SemVersion version)
+        {
+            var document = XDocument.Load(FilePath.FullName, LoadOptions.PreserveWhitespace);
 
             var writerSettings = new XmlWriterSettings { OmitXmlDeclaration = true };
 
@@ -20,7 +29,7 @@ namespace GitTreeVersion.Deployables.DotNet
             if (versionElement is not null)
             {
                 versionElement.SetValue(version.ToString());
-                using var xmlWriter = XmlWriter.Create(filePath.FullName, writerSettings);
+                using var xmlWriter = XmlWriter.Create(FilePath.FullName, writerSettings);
                 document.Save(xmlWriter);
                 return;
             }
@@ -30,7 +39,7 @@ namespace GitTreeVersion.Deployables.DotNet
             if (propertyGroupElement is not null)
             {
                 propertyGroupElement.Add(new XElement("Version", version.ToString()));
-                using var xmlWriter = XmlWriter.Create(filePath.FullName, writerSettings);
+                using var xmlWriter = XmlWriter.Create(FilePath.FullName, writerSettings);
                 document.Save(xmlWriter);
                 return;
             }
@@ -40,12 +49,12 @@ namespace GitTreeVersion.Deployables.DotNet
             if (projectElement is not null)
             {
                 projectElement.Add(new XElement("PropertyGroup", new XElement("Version", version.ToString())));
-                using var xmlWriter = XmlWriter.Create(filePath.FullName, writerSettings);
+                using var xmlWriter = XmlWriter.Create(FilePath.FullName, writerSettings);
                 document.Save(xmlWriter);
                 return;
             }
 
-            Log.Warning($"Unable to apply version to: {filePath.FullName}");
+            Log.Warning($"Unable to apply version to: {FilePath.FullName}");
         }
     }
 }

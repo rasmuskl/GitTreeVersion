@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using FluentAssertions;
 using GitTreeVersion.Context;
+using GitTreeVersion.Deployables;
 using GitTreeVersion.Deployables.DotNet;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
@@ -412,10 +413,11 @@ namespace GitTreeVersion.Tests
             var projectPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.csproj");
             File.WriteAllText(projectPath, ResourceReader.CatapultCsproj);
 
-            var deployableProcessor = new DotNetDeployableProcessor();
-            var deployablePaths = deployableProcessor.GetSourceReferencedDeployablePaths(new AbsoluteFilePath(projectPath));
+            var deployable = new DeployableResolver().Resolve(new AbsoluteFilePath(projectPath));
 
-            deployablePaths.Length.Should().Be(1);
+            deployable.Should().NotBeNull();
+            deployable.Should().BeOfType<DotNetClassicProject>();
+            deployable!.ReferencedDeployablePaths.Length.Should().Be(1);
         }
 
         [Test]
@@ -424,10 +426,11 @@ namespace GitTreeVersion.Tests
             var projectPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.csproj");
             File.WriteAllText(projectPath, ResourceReader.GitTreeVersionTestsCsproj);
 
-            var deployableProcessor = new DotNetDeployableProcessor();
-            var deployablePaths = deployableProcessor.GetSourceReferencedDeployablePaths(new AbsoluteFilePath(projectPath));
+            var deployable = new DeployableResolver().Resolve(new AbsoluteFilePath(projectPath));
 
-            deployablePaths.Length.Should().Be(1);
+            deployable.Should().NotBeNull();
+            deployable.Should().BeOfType<DotNetSdkStyleProject>();
+            deployable!.ReferencedDeployablePaths.Length.Should().Be(1);
         }
     }
 }

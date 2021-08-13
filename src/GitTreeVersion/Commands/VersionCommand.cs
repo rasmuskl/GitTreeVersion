@@ -4,8 +4,6 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.Linq;
 using GitTreeVersion.Context;
-using GitTreeVersion.Deployables.DotNet;
-using GitTreeVersion.Deployables.Npm;
 using GitTreeVersion.Paths;
 using Spectre.Console;
 
@@ -41,21 +39,17 @@ namespace GitTreeVersion.Commands
             {
                 var relevantDeployables = fileGraph.DeployableFileVersionRoots.Where(p => p.Value == fileGraph.VersionRootPath).Select(p => p.Key).ToArray();
 
-                foreach (var deployable in relevantDeployables)
+                foreach (var deployablePath in relevantDeployables)
                 {
-                    AnsiConsole.MarkupLine($"Applying version [green]{version}[/] to: {deployable.FullName}");
+                    AnsiConsole.MarkupLine($"Applying version [green]{version}[/] to: {deployablePath.FullName}");
 
-                    if (deployable.Extension == ".csproj")
+                    if (fileGraph.Deployables.TryGetValue(deployablePath, out var deployable))
                     {
-                        new DotNetVersionApplier().ApplyVersion(deployable, version);
-                    }
-                    else if (deployable.FileName == "package.json")
-                    {
-                        new NpmVersionApplier().ApplyVersion(deployable, version);
+                        deployable.ApplyVersion(version);
                     }
                     else
                     {
-                        Log.Warning($"Unable to apply version to: {deployable.FullName}");
+                        Log.Warning($"Unable to apply version to: {deployablePath.FullName}");
                     }
                 }
             }
