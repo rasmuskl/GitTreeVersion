@@ -9,10 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentAssertions" Version="5.10.3" />
-        <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-        <PackageReference Include="NUnit" Version="3.13.2" />
+        <PackageReference Include="FluentAssertions" Version="5.10.3"/>
+        <PackageReference Include="LibGit2Sharp" Version="0.26.2"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4"/>
+        <PackageReference Include="NUnit" Version="3.13.2"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
@@ -24,12 +24,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\GitTreeVersion\GitTreeVersion.csproj" />
+        <ProjectReference Include="..\GitTreeVersion\GitTreeVersion.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Resources\**" />
-      <EmbeddedResource Include="Resources\**" />
+        <None Remove="Resources\**"/>
+        <EmbeddedResource Include="Resources\**"/>
     </ItemGroup>
 
 </Project>

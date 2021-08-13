@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Xml.Linq;
 using FluentAssertions;
 using GitTreeVersion.Context;
 using GitTreeVersion.Deployables.DotNet;
