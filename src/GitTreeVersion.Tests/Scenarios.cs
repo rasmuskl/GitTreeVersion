@@ -2,8 +2,10 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Xml.Linq;
 using FluentAssertions;
 using GitTreeVersion.Context;
+using GitTreeVersion.Deployables.DotNet;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 using NUnit.Framework;
@@ -403,6 +405,30 @@ namespace GitTreeVersion.Tests
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
             version.Should().Be(new SemVersion(20210101, 1));
+        }
+
+        [Test]
+        public void OldCsprojProjectReferences()
+        {
+            var projectPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.csproj");
+            File.WriteAllText(projectPath, ResourceReader.CatapultCsproj);
+
+            var deployableProcessor = new DotNetDeployableProcessor();
+            var deployablePaths = deployableProcessor.GetSourceReferencedDeployablePaths(new AbsoluteFilePath(projectPath));
+
+            deployablePaths.Length.Should().Be(1);
+        }
+
+        [Test]
+        public void NewCsprojProjectReferences()
+        {
+            var projectPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.csproj");
+            File.WriteAllText(projectPath, ResourceReader.GitTreeVersionTestsCsproj);
+
+            var deployableProcessor = new DotNetDeployableProcessor();
+            var deployablePaths = deployableProcessor.GetSourceReferencedDeployablePaths(new AbsoluteFilePath(projectPath));
+
+            deployablePaths.Length.Should().Be(1);
         }
     }
 }

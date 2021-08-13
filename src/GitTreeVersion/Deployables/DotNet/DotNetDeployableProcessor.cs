@@ -17,7 +17,14 @@ namespace GitTreeVersion.Deployables.DotNet
                 return Array.Empty<AbsoluteFilePath>();
             }
 
-            var projectReferenceElements = document.Root?.XPathSelectElements("//ProjectReference");
+            if (document.Root is null)
+            {
+                return Array.Empty<AbsoluteFilePath>();
+            }
+
+            var rootName = document.Root.Name;
+
+            var projectReferenceElements = document.Root.XPathSelectElements("//*[local-name() = 'ProjectReference']");
 
             if (projectReferenceElements is null)
             {
