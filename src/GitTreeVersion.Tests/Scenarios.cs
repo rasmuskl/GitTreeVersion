@@ -283,7 +283,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new SemVersion(0, 0, 2, branchName));
+            version.Should().Be(new SemVersion(0, 0, 2, $"{branchName}.1"));
         }
 
         [Test]
@@ -299,7 +299,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new SemVersion(0, 0, 2, "feature-12345"));
+            version.Should().Be(new SemVersion(0, 0, 2, "feature-12345.1"));
         }
 
         [Test]
