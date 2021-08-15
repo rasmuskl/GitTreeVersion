@@ -37,7 +37,10 @@ namespace GitTreeVersion.Commands
 
             if (apply)
             {
-                var relevantDeployables = fileGraph.DeployableFileVersionRoots.Where(p => p.Value == fileGraph.VersionRootPath).Select(p => p.Key).ToArray();
+                var relevantDeployables = fileGraph
+                    .DeployableFileVersionRoots
+                    .Where(p => p.Value == fileGraph.VersionRootPath)
+                    .Select(p => p.Key);
 
                 foreach (var deployablePath in relevantDeployables)
                 {
