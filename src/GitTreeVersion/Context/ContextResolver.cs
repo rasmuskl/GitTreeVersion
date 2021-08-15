@@ -1,5 +1,4 @@
-﻿using System;
-using GitTreeVersion.BuildEnvironments;
+﻿using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Context

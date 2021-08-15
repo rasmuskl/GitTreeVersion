@@ -11,7 +11,7 @@ namespace GitTreeVersion.Git
 {
     public class GitDirectory
     {
-        private static readonly HashSet<string> _mainBranchNames = new(new[] { "master", "main" });
+        private static readonly HashSet<string> MainBranchNames = new(new[] { "master", "main" });
         private readonly AbsoluteDirectoryPath _workingDirectory;
 
         public GitDirectory(AbsoluteDirectoryPath workingDirectory)
@@ -158,13 +158,13 @@ namespace GitTreeVersion.Git
                 throw new Exception("Current branch not found.");
             }
 
-            var mainBranches = refs.Where(r => _mainBranchNames.Contains(r.Name)).ToArray();
+            var mainBranches = refs.Where(r => MainBranchNames.Contains(r.Name)).ToArray();
 
             if (mainBranches.Length != 1)
             {
                 if (mainBranches.Length == 0)
                 {
-                    throw new UserException($"Main branch not found. Expected a branch with name: {string.Join(", ", _mainBranchNames)}");
+                    throw new UserException($"Main branch not found. Expected a branch with name: {string.Join(", ", MainBranchNames)}");
                 }
 
                 throw new UserException($"Multiple main branches found. Expected 1 but found: {string.Join(", ", mainBranches.Select(b => b.Name))}");
@@ -235,6 +235,48 @@ namespace GitTreeVersion.Git
             return output.SplitOutput();
         }
 
+        public FileCommitContent[] FileCommitHistory(string filePath)
+        {
+            var commits = GitCommits(null, new[] { filePath });
+
+            var args = new List<string>();
+
+            var marker = Guid.NewGuid().ToString();
+
+            args.Add("show");
+            args.Add("--no-patch");
+            args.Add($"--format=format:{marker}%H{marker}");
+
+            foreach (var commit in commits)
+            {
+                args.Add(commit);
+                args.Add($"{commit}:{Path.GetRelativePath(_workingDirectory.FullName, filePath)}");
+            }
+
+            var output = RunGit(args.ToArray());
+            var splitOutput = output.Split(marker, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            var list = new List<FileCommitContent>();
+
+            for (var i = 0; i < splitOutput.Length; i += 2)
+            {
+                list.Add(new FileCommitContent(splitOutput[i], splitOutput[i + 1]));
+            }
+
+            return list.ToArray();
+        }
+
+        public bool IsShallowCheckout()
+        {
+            var output = RunGit("rev-parse", "--is-shallow-repository");
+            return string.Equals(output.Trim(), "true", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public void Fetch()
+        {
+            RunGit("fetch");
+        }
+
         public string RunGit(params string[] arguments)
         {
             var startInfo = new ProcessStartInfo
@@ -277,37 +319,6 @@ namespace GitTreeVersion.Git
             }
 
             return outputBuilder.ToString();
-        }
-
-        public FileCommitContent[] FileCommitHistory(string filePath)
-        {
-            var commits = GitCommits(null, new[] { filePath });
-
-            var args = new List<string>();
-
-            var marker = Guid.NewGuid().ToString();
-
-            args.Add("show");
-            args.Add("--no-patch");
-            args.Add($"--format=format:{marker}%H{marker}");
-
-            foreach (var commit in commits)
-            {
-                args.Add(commit);
-                args.Add($"{commit}:{Path.GetRelativePath(_workingDirectory.FullName, filePath)}");
-            }
-
-            var output = RunGit(args.ToArray());
-            var splitOutput = output.Split(marker, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            var list = new List<FileCommitContent>();
-
-            for (var i = 0; i < splitOutput.Length; i += 2)
-            {
-                list.Add(new FileCommitContent(splitOutput[i], splitOutput[i + 1]));
-            }
-
-            return list.ToArray();
         }
     }
 }

@@ -18,7 +18,19 @@ namespace GitTreeVersion.Context
             RepositoryRootPath = repositoryRootPath;
             VersionRootPath = versionRootPath;
 
-            var branchStatus = new GitDirectory(repositoryRootPath).GitCurrentBranch();
+            var repositoryGitDirectory = new GitDirectory(repositoryRootPath);
+
+            var isShallowCheckout = repositoryGitDirectory.IsShallowCheckout();
+
+            if (isShallowCheckout)
+            {
+                Log.Warning("Shallow checkout detected. Running git fetch.");
+                repositoryGitDirectory.Fetch();
+            }
+
+
+            var branchStatus = repositoryGitDirectory.GitCurrentBranch();
+
             CurrentBranch = branchStatus.currentRef;
             MainBranch = branchStatus.mainBranch;
             BuildEnvironment = (buildEnvironmentDetector ?? new BuildEnvironmentDetector()).GetBuildEnvironment();

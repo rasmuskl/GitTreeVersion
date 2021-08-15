@@ -7,7 +7,7 @@ namespace GitTreeVersion.Tests
 {
     public class AttributeTests
     {
-        private static readonly AttributeAugmenter? Augmenter = new();
+        private static readonly AttributeAugmenter Augmenter = new();
 
         [Test]
         public void MissingAttribute_Add()
