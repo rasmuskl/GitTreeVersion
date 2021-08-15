@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
@@ -22,6 +23,11 @@ namespace GitTreeVersion.Commands
         private void Execute(bool apply, bool debug, string? path)
         {
             Log.IsDebug = debug;
+
+            if (path is not null)
+            {
+                path = Path.GetFullPath(path);
+            }
             path ??= Environment.CurrentDirectory;
 
             var stopwatch = Stopwatch.StartNew();

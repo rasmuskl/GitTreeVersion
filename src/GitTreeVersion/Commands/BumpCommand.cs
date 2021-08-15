@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.IO;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 
@@ -19,7 +20,13 @@ namespace GitTreeVersion.Commands
         private void Execute(VersionTypeOptions type, bool debug, string? path)
         {
             Log.IsDebug = debug;
+
+            if (path is not null)
+            {
+                path = Path.GetFullPath(path);
+            }
             path ??= Environment.CurrentDirectory;
+
             Console.WriteLine($"Bumping {type}");
 
             var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(path));

@@ -48,8 +48,6 @@ namespace GitTreeVersion.Context
         {
             var directoryPath = directory.CombineToDirectory(directoryName);
 
-            Log.Debug($"Checking: {directoryPath}");
-            
             if (directoryPath.Exists)
             {
                 return directory;

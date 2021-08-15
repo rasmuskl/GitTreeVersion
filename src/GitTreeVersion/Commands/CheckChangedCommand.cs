@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.IO;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
@@ -18,6 +19,11 @@ namespace GitTreeVersion.Commands
         private void Execute(bool debug, string? path)
         {
             Log.IsDebug = debug;
+
+            if (path is not null)
+            {
+                path = Path.GetFullPath(path);
+            }
             path ??= Environment.CurrentDirectory;
 
             var gitDirectory = new GitDirectory(new AbsoluteDirectoryPath(path));
