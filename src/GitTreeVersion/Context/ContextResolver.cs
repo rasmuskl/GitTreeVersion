@@ -14,7 +14,7 @@ namespace GitTreeVersion.Context
 
             if (repositoryRoot is null)
             {
-                throw new InvalidOperationException("Not in a git repository");
+                throw new UserException("Not in a git repository.");
             }
 
             var configFilePath = FindFileAbove(workingDirectory, VersionConfigFileName);

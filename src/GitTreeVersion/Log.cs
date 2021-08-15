@@ -20,5 +20,10 @@ namespace GitTreeVersion
         {
             AnsiConsole.MarkupLine($"[yellow]{text}[/]");
         }
+
+        public static void Error(string text)
+        {
+            AnsiConsole.MarkupLine($"[red]{text}[/]");
+        }
     }
 }

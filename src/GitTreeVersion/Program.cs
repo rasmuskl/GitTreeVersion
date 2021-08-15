@@ -1,8 +1,12 @@
-﻿using System.CommandLine;
+﻿using System;
+using System.CommandLine;
 using System.CommandLine.Builder;
+using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
+using System.Reflection;
 using System.Threading.Tasks;
 using GitTreeVersion.Commands;
+using Spectre.Console;
 
 namespace GitTreeVersion
 {
@@ -21,10 +25,34 @@ namespace GitTreeVersion
             rootCommand.AddCommand(new BumpCommand());
 
             var commandLineBuilder = new CommandLineBuilder(rootCommand)
-                .UseDefaults();
+                .UseExceptionHandler(OnException);
 
             var parser = commandLineBuilder.Build();
             return await parser.InvokeAsync(args);
+        }
+
+        private static void OnException(Exception exception, InvocationContext context)
+        {
+            while (exception is TargetInvocationException && exception.InnerException is not null)
+            {
+                exception = exception.InnerException;
+            }
+
+            if (exception is OperationCanceledException)
+            {
+                context.ExitCode = 1;
+                return;
+            }
+
+            if (exception is UserException)
+            {
+                Log.Error(exception.Message);
+                context.ExitCode = 1;
+                return;
+            }
+
+            Log.Error("Unhandled exception:");
+            AnsiConsole.WriteException(exception, ExceptionFormats.ShortenEverything);
         }
     }
 }

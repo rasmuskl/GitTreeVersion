@@ -164,10 +164,10 @@ namespace GitTreeVersion.Git
             {
                 if (mainBranches.Length == 0)
                 {
-                    throw new Exception($"Main branch not found. Expected a branch with name: {string.Join(", ", _mainBranchNames)}");
+                    throw new UserException($"Main branch not found. Expected a branch with name: {string.Join(", ", _mainBranchNames)}");
                 }
 
-                throw new Exception($"Multiple main branches found. Expected 1 but found: {string.Join(", ", mainBranches.Select(b => b.Name))}");
+                throw new UserException($"Multiple main branches found. Expected 1 but found: {string.Join(", ", mainBranches.Select(b => b.Name))}");
             }
 
             var mainBranch = mainBranches.Single();
