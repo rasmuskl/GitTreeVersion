@@ -119,7 +119,7 @@ namespace GitTreeVersion.Git
 
         public (GitRef? currentRef, GitRef? mainBranch) GitCurrentBranch()
         {
-            var output = RunGit("branch");
+            var output = RunGit("branch", "--all");
             var lines = output.SplitOutput();
             var refs = new List<GitRef>();
             GitRef? currentRef = null;
