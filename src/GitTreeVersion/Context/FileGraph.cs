@@ -24,10 +24,8 @@ namespace GitTreeVersion.Context
 
             if (isShallowCheckout)
             {
-                Log.Warning("Shallow checkout detected. Running git fetch.");
-                repositoryGitDirectory.Fetch();
+                throw new UserException("Shallow checkout detected, change to a full checkout.");
             }
-
 
             var branchStatus = repositoryGitDirectory.GitCurrentBranch();
 

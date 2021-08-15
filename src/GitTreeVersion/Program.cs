@@ -33,6 +33,8 @@ namespace GitTreeVersion
 
         private static void OnException(Exception exception, InvocationContext context)
         {
+            context.ExitCode = 1;
+
             while (exception is TargetInvocationException && exception.InnerException is not null)
             {
                 exception = exception.InnerException;
@@ -40,14 +42,12 @@ namespace GitTreeVersion
 
             if (exception is OperationCanceledException)
             {
-                context.ExitCode = 1;
                 return;
             }
 
             if (exception is UserException)
             {
                 Log.Error(exception.Message);
-                context.ExitCode = 1;
                 return;
             }
 
