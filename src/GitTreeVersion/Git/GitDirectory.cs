@@ -160,6 +160,11 @@ namespace GitTreeVersion.Git
 
             var mainBranches = refs.Where(r => MainBranchNames.Contains(r.Name)).ToArray();
 
+            if (mainBranches.Length == 0)
+            {
+                mainBranches = refs.Where(r => MainBranchNames.Contains(r.Name.Split('/').Last())).ToArray();
+            }
+
             if (mainBranches.Length != 1)
             {
                 if (mainBranches.Length == 0)
