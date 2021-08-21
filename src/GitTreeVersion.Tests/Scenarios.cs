@@ -22,7 +22,7 @@ namespace GitTreeVersion.Tests
 
             Action action = () => { new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath)); };
 
-            action.Should().Throw<InvalidOperationException>();
+            action.Should().Throw<UserException>();
         }
 
         [Test]
@@ -388,7 +388,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new SemVersion(20210101));
+            version.Should().Be(new SemVersion(2021, 101));
         }
 
         [Test]
@@ -404,7 +404,7 @@ namespace GitTreeVersion.Tests
 
             var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
 
-            version.Should().Be(new SemVersion(20210101, 1));
+            version.Should().Be(new SemVersion(2021, 101, 1));
         }
 
         [Test]

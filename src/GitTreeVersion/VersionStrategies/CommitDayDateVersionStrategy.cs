@@ -4,8 +4,15 @@ using GitTreeVersion.Git;
 
 namespace GitTreeVersion.VersionStrategies
 {
-    public class FullDateVersionStrategy : IVersionStrategy
+    public class CommitDayDateVersionStrategy : IVersionStrategy
     {
+        private readonly string _format;
+
+        public CommitDayDateVersionStrategy(string format)
+        {
+            _format = format;
+        }
+
         public VersionComponent GetVersionComponent(VersionComponentContext context, string? range)
         {
             var gitDirectory = new GitDirectory(context.VersionRootPath);
@@ -30,7 +37,7 @@ namespace GitTreeVersion.VersionStrategies
             Log.Debug($"First on date: {firstOnDate}");
             range = $"{firstOnDate}..";
 
-            return new VersionComponent(int.Parse(newestCommitTimestamp.ToString("yyyyMMdd")), range);
+            return new VersionComponent(int.Parse(newestCommitTimestamp.ToString(_format)), range);
         }
     }
 }

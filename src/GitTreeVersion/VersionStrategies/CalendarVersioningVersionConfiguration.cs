@@ -2,8 +2,8 @@
 {
     public class CalendarVersioningVersionConfiguration : IVersionConfiguration
     {
-        public IVersionStrategy Major => new FullDateVersionStrategy();
-        public IVersionStrategy Minor => new CommitCountVersionStrategy();
-        public IVersionStrategy Patch => new FixedVersionStrategy(0);
+        public IVersionStrategy Major => new CommitDayDateVersionStrategy("yyyy");
+        public IVersionStrategy Minor => new CommitDayDateVersionStrategy("Mdd");
+        public IVersionStrategy Patch => new CommitCountVersionStrategy();
     }
 }
