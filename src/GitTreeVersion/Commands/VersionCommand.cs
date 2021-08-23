@@ -40,7 +40,7 @@ namespace GitTreeVersion.Commands
             var versionCalculator = new VersionCalculator();
             var version = versionCalculator.GetVersion(versionGraph, versionGraph.VersionRootPath);
 
-            AnsiConsole.MarkupLine($"Version: [green]{version}[/]");
+            AnsiConsole.MarkupLine($"Version: [lime]{version}[/]");
 
             if (apply)
             {
@@ -51,7 +51,7 @@ namespace GitTreeVersion.Commands
 
                 foreach (var deployablePath in relevantDeployables)
                 {
-                    AnsiConsole.MarkupLine($"Applying version [green]{version}[/] to: {deployablePath.FullName}");
+                    AnsiConsole.MarkupLine($"Applying version [lime]{version}[/] to: {deployablePath.FullName}");
 
                     if (versionGraph.Deployables.TryGetValue(deployablePath, out var deployable))
                     {

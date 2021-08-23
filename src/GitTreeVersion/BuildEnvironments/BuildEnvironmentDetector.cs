@@ -16,7 +16,7 @@ namespace GitTreeVersion.BuildEnvironments
         {
             if (_environmentAccessor.GetEnvironmentVariable("TF_BUILD") == "True")
             {
-                AnsiConsole.MarkupLine("Build Environment: [green]Azure Pipelines[/]");
+                AnsiConsole.MarkupLine("Build Environment: [lime]Azure Pipelines[/]");
                 return new AzureDevOpsBuildEnvironment(_environmentAccessor);
             }
 
