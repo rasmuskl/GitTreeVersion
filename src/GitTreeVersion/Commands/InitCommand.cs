@@ -25,6 +25,7 @@ namespace GitTreeVersion.Commands
             {
                 path = Path.GetFullPath(path);
             }
+
             path ??= Environment.CurrentDirectory;
 
             var workingDirectory = new AbsoluteDirectoryPath(path);

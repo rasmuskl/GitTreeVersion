@@ -7,6 +7,7 @@ using GitTreeVersion.Context;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 using LibGit2Sharp;
+using Semver;
 
 namespace GitTreeVersion.Tests
 {
@@ -128,6 +129,12 @@ namespace GitTreeVersion.Tests
             File.WriteAllText(filePath, JsonSerializer.Serialize(versionConfig, JsonOptions.DefaultOptions));
 
             return new AbsoluteFilePath(filePath);
+        }
+
+        public static SemVersion CalculateVersion(AbsoluteDirectoryPath repositoryPath)
+        {
+            var versionGraph = ContextResolver.GetVersionGraph(repositoryPath);
+            return new VersionCalculator().GetVersion(versionGraph, versionGraph.VersionRootPath);
         }
     }
 }

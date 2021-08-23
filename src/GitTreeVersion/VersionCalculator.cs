@@ -10,12 +10,7 @@ namespace GitTreeVersion
 {
     public class VersionCalculator
     {
-        public SemVersion GetVersion(FileGraph graph)
-        {
-            return GetVersion(graph, graph.VersionRootPath);
-        }
-
-        public SemVersion GetVersion(FileGraph graph, AbsoluteDirectoryPath versionRootPath)
+        public SemVersion GetVersion(VersionGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
             IVersionConfiguration versionConfiguration = new SemanticVersioningVersionConfiguration();
 
@@ -40,7 +35,7 @@ namespace GitTreeVersion
             return new SemVersion(majorComponent.Version, minorComponent.Version, patchComponent.Version, prerelease);
         }
 
-        private static string? GetPrerelease(FileGraph graph, AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)
+        private static string? GetPrerelease(VersionGraph graph, AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)
         {
             var prerelease = graph.BuildEnvironment?.GetPrerelease(versionRootPath, relevantPaths);
 

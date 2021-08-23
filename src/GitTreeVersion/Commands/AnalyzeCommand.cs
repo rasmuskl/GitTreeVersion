@@ -33,14 +33,14 @@ namespace GitTreeVersion.Commands
                 .Status()
                 .Start("Analyzing project...", ctx =>
                 {
-                    var graph = ContextResolver.GetFileGraph(projectDirectoryPath!);
+                    var graph = ContextResolver.GetVersionGraph(projectDirectoryPath!);
                     AddDependencies(tree, graph, projectPath);
                 });
 
             AnsiConsole.Render(tree);
         }
 
-        private void AddDependencies(IHasTreeNodes tree, FileGraph graph, AbsoluteFilePath projectPath)
+        private void AddDependencies(IHasTreeNodes tree, VersionGraph graph, AbsoluteFilePath projectPath)
         {
             if (!graph.DeployableFileDependencies.TryGetValue(projectPath, out var dependencies))
             {

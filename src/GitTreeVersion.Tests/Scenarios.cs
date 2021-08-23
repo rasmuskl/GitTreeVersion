@@ -20,7 +20,7 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateEmptyDirectory();
 
-            Action action = () => { new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath)); };
+            Action action = () => { CalculateVersion(repositoryPath); };
 
             action.Should().Throw<UserException>();
         }
@@ -30,7 +30,7 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateGitRepository();
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0));
         }
@@ -42,7 +42,7 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 0, 1));
         }
@@ -55,7 +55,7 @@ namespace GitTreeVersion.Tests
             CommitNewFile(repositoryPath);
             CommitNewFile(repositoryPath);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 0, 2));
         }
@@ -73,7 +73,7 @@ namespace GitTreeVersion.Tests
 
             MergeBranchToMaster(repositoryPath, branchName);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 0, 2));
         }
@@ -91,7 +91,7 @@ namespace GitTreeVersion.Tests
 
             MergeBranchToMaster(repositoryPath, branchName, true);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 0, 2));
         }
@@ -104,7 +104,7 @@ namespace GitTreeVersion.Tests
             var bumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, bumpFile);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 1));
         }
@@ -117,7 +117,7 @@ namespace GitTreeVersion.Tests
             var bumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, bumpFile);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(1));
         }
@@ -133,7 +133,7 @@ namespace GitTreeVersion.Tests
             var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(1));
         }
@@ -149,7 +149,7 @@ namespace GitTreeVersion.Tests
             var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(1, 1));
         }
@@ -168,7 +168,7 @@ namespace GitTreeVersion.Tests
             File.WriteAllText(majorBumpFile.ToString(), "change");
             CommitFile(repositoryPath, majorBumpFile);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(1, 1, 1));
         }
@@ -186,7 +186,7 @@ namespace GitTreeVersion.Tests
 
             MoveAndCommitFile(repositoryPath, majorBumpFile, new AbsoluteFilePath(Path.Combine(majorBumpFile.Parent.ToString(), "new-name")));
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(1, 1, 1));
         }
@@ -207,7 +207,7 @@ namespace GitTreeVersion.Tests
             File.WriteAllText(minorBumpFile.ToString(), "change");
             CommitFile(repositoryPath, minorBumpFile);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(1, 1, 2));
         }
@@ -232,7 +232,7 @@ namespace GitTreeVersion.Tests
             // Since we get the moved file name and use it as a pathspec, it does not track back to initial bump commit unless --follow is added, but --follow only allows for exactly one pathspec
             // Potential solution - replace diff + log with reconstruction through: git log --full-history --first-parent --name-status --format=format:%H <major-commit>.. -- .version/minor/*
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(1, 1, 2));
         }
@@ -250,7 +250,7 @@ namespace GitTreeVersion.Tests
             File.WriteAllText(minorBumpFile.ToString(), "change");
             CommitFile(repositoryPath, minorBumpFile);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 1, 2));
         }
@@ -267,7 +267,7 @@ namespace GitTreeVersion.Tests
 
             MoveAndCommitFile(repositoryPath, minorBumpFile, new AbsoluteFilePath(Path.Combine(minorBumpFile.Parent.ToString(), "new-name")));
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 1, 2));
         }
@@ -283,7 +283,7 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 0, 2, $"{branchName}.1"));
         }
@@ -299,7 +299,7 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 0, 2, "feature-12345.1"));
         }
@@ -316,11 +316,11 @@ namespace GitTreeVersion.Tests
             CommitNewFile(repositoryPath);
             CommitNewFile(repositoryPath);
 
-            var branchVersion = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var branchVersion = CalculateVersion(repositoryPath);
 
             MergeBranchToMaster(repositoryPath, branchName);
 
-            var mergedMasterVersion = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var mergedMasterVersion = CalculateVersion(repositoryPath);
 
             Console.WriteLine($"Branch: {branchVersion}");
             Console.WriteLine($"Merged: {mergedMasterVersion}");
@@ -372,7 +372,7 @@ namespace GitTreeVersion.Tests
 
             CommitVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersion });
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(0, 0, 1));
         }
@@ -386,7 +386,7 @@ namespace GitTreeVersion.Tests
             var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.CalendarVersion });
             CommitFile(repositoryPath, filePath, commitTime);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(2021, 101));
         }
@@ -402,7 +402,7 @@ namespace GitTreeVersion.Tests
 
             CommitNewFile(repositoryPath, commitTime.Add(TimeSpan.FromSeconds(5)));
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath));
+            var version = CalculateVersion(repositoryPath);
 
             version.Should().Be(new SemVersion(2021, 101, 1));
         }

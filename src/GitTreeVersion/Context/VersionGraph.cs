@@ -9,14 +9,13 @@ using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Context
 {
-    public class FileGraph
+    public class VersionGraph
     {
         private readonly DeployableResolver _deployableResolver = new();
 
-        public FileGraph(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath versionRootPath, BuildEnvironmentDetector? buildEnvironmentDetector)
+        public VersionGraph(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath startingPath, BuildEnvironmentDetector? buildEnvironmentDetector)
         {
             RepositoryRootPath = repositoryRootPath;
-            VersionRootPath = versionRootPath;
 
             var repositoryGitDirectory = new GitDirectory(repositoryRootPath);
 
@@ -33,15 +32,18 @@ namespace GitTreeVersion.Context
             MainBranch = branchStatus.mainBranch;
             BuildEnvironment = (buildEnvironmentDetector ?? new BuildEnvironmentDetector()).GetBuildEnvironment();
 
+            var configFilePath = AbsoluteDirectoryPath.FindFileAbove(startingPath, ContextResolver.VersionConfigFileName);
+            VersionRootPath = configFilePath is not null ? configFilePath.Parent : RepositoryRootPath;
+
             var rootStack = new Stack<AbsoluteDirectoryPath>();
-            rootStack.Push(versionRootPath);
+            rootStack.Push(VersionRootPath);
 
             var versionRootPaths = new List<AbsoluteDirectoryPath>();
             var versionRootParents = new Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?>();
             var versionRootConfigs = new Dictionary<AbsoluteDirectoryPath, VersionConfig>();
 
-            versionRootPaths.Add(versionRootPath);
-            versionRootParents[versionRootPath] = null;
+            versionRootPaths.Add(VersionRootPath);
+            versionRootParents[VersionRootPath] = null;
 
             var gitDirectory = new GitDirectory(VersionRootPath);
             var versionDirectoryPaths = gitDirectory.GitFindFiles(new[] { ":(glob)**/version.json" }, true)
@@ -155,15 +157,15 @@ namespace GitTreeVersion.Context
             Deployables = deployables.ToDictionary(d => d.FilePath, d => d);
         }
 
+        public AbsoluteDirectoryPath VersionRootPath { get; }
+
         public GitRef? MainBranch { get; }
         public GitRef? CurrentBranch { get; }
         public IBuildEnvironment? BuildEnvironment { get; }
         public AbsoluteDirectoryPath RepositoryRootPath { get; }
-        public AbsoluteDirectoryPath VersionRootPath { get; }
         public Dictionary<AbsoluteFilePath, IDeployable> Deployables { get; }
         public Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath> DeployableFileVersionRoots { get; }
         public Dictionary<AbsoluteFilePath, AbsoluteFilePath[]> DeployableFileDependencies { get; }
-
         public AbsoluteDirectoryPath[] VersionRootPaths { get; }
         public Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?> VersionRootParents { get; }
         public Dictionary<AbsoluteDirectoryPath, VersionConfig> VersionRootConfigs { get; }

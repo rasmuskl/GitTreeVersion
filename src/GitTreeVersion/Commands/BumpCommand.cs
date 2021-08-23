@@ -25,16 +25,17 @@ namespace GitTreeVersion.Commands
             {
                 path = Path.GetFullPath(path);
             }
+
             path ??= Environment.CurrentDirectory;
 
             Console.WriteLine($"Bumping {type}");
 
-            var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(path));
-            var versionRootPath = fileGraph.VersionRootPath;
-            Console.WriteLine($"Version root path: {versionRootPath}");
+            var versionGraph = ContextResolver.GetVersionGraph(new AbsoluteDirectoryPath(path));
+
+            Console.WriteLine($"Version root path: {versionGraph.VersionRootPath}");
 
             var bumper = new Bumper();
-            bumper.Bump(versionRootPath, (VersionType)type);
+            bumper.Bump(versionGraph.VersionRootPath, (VersionType)type);
         }
 
         private enum VersionTypeOptions

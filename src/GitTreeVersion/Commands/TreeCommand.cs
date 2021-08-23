@@ -28,24 +28,23 @@ namespace GitTreeVersion.Commands
             {
                 path = Path.GetFullPath(path);
             }
+
             path ??= Environment.CurrentDirectory;
 
             var stopwatch = Stopwatch.StartNew();
 
-            var graph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(path));
+            var versionGraph = ContextResolver.GetVersionGraph(new AbsoluteDirectoryPath(path));
 
-            var rootVersionPath = graph.VersionRootPath;
+            var version = new VersionCalculator().GetVersion(versionGraph, versionGraph.VersionRootPath);
+            var tree = new Tree($"{versionGraph.VersionRootPath.Name} [grey30][[[/][lime]{version}[/][grey30]]][/]");
 
-            var version = new VersionCalculator().GetVersion(graph, rootVersionPath);
-            var tree = new Tree($"{rootVersionPath.Name} [grey30][[[/][lime]{version}[/][grey30]]][/]");
-
-            AddVersionRootChildren(tree, graph, rootVersionPath, version);
+            AddVersionRootChildren(tree, versionGraph, versionGraph.VersionRootPath, version);
 
             AnsiConsole.Render(tree);
             Log.Debug($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
 
-        private void AddVersionRootChildren(IHasTreeNodes tree, FileGraph graph, AbsoluteDirectoryPath versionRootPath, SemVersion version)
+        private void AddVersionRootChildren(IHasTreeNodes tree, VersionGraph graph, AbsoluteDirectoryPath versionRootPath, SemVersion version)
         {
             var childDeployables = graph.DeployableFileVersionRoots
                 .Where(p => p.Value == versionRootPath)

@@ -22,7 +22,8 @@ namespace GitTreeVersion.Tests
             var environmentAccessor = SimulateAzureDevOpsPullRequest(repositoryPath, branchName, 42);
             var buildEnvironmentDetector = new BuildEnvironmentDetector(environmentAccessor);
 
-            var version = new VersionCalculator().GetVersion(ContextResolver.GetFileGraph(repositoryPath, buildEnvironmentDetector));
+            var versionGraph = ContextResolver.GetVersionGraph(repositoryPath, buildEnvironmentDetector);
+            var version = new VersionCalculator().GetVersion(versionGraph, versionGraph.VersionRootPath);
 
             version.Should().Be(new SemVersion(0, 0, 2, "PullRequest.42.1"));
         }

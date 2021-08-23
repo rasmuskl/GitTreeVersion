@@ -28,31 +28,32 @@ namespace GitTreeVersion.Commands
             {
                 path = Path.GetFullPath(path);
             }
+
             path ??= Environment.CurrentDirectory;
 
             var stopwatch = Stopwatch.StartNew();
-            var fileGraph = ContextResolver.GetFileGraph(new AbsoluteDirectoryPath(path));
+            var versionGraph = ContextResolver.GetVersionGraph(new AbsoluteDirectoryPath(path));
 
-            Console.WriteLine($"Repository root: {fileGraph.RepositoryRootPath}");
-            Console.WriteLine($"Version root: {fileGraph.VersionRootPath}");
+            Console.WriteLine($"Repository root: {versionGraph.RepositoryRootPath}");
+            Console.WriteLine($"Version root: {versionGraph.VersionRootPath}");
 
             var versionCalculator = new VersionCalculator();
-            var version = versionCalculator.GetVersion(fileGraph);
+            var version = versionCalculator.GetVersion(versionGraph, versionGraph.VersionRootPath);
 
             AnsiConsole.MarkupLine($"Version: [green]{version}[/]");
 
             if (apply)
             {
-                var relevantDeployables = fileGraph
+                var relevantDeployables = versionGraph
                     .DeployableFileVersionRoots
-                    .Where(p => p.Value == fileGraph.VersionRootPath)
+                    .Where(p => p.Value == versionGraph.VersionRootPath)
                     .Select(p => p.Key);
 
                 foreach (var deployablePath in relevantDeployables)
                 {
                     AnsiConsole.MarkupLine($"Applying version [green]{version}[/] to: {deployablePath.FullName}");
 
-                    if (fileGraph.Deployables.TryGetValue(deployablePath, out var deployable))
+                    if (versionGraph.Deployables.TryGetValue(deployablePath, out var deployable))
                     {
                         deployable.ApplyVersion(version);
                     }

@@ -94,5 +94,39 @@ namespace GitTreeVersion.Paths
             var potentialParentDirectoryPath = Path.TrimEndingDirectorySeparator(new DirectoryInfo(parentPath.ToString()).FullName) + Path.DirectorySeparatorChar;
             return directoryPath.StartsWith(potentialParentDirectoryPath);
         }
+
+        public static AbsoluteFilePath? FindFileAbove(AbsoluteDirectoryPath directory, string fileName)
+        {
+            var filePath = directory.CombineToFile(fileName);
+
+            if (filePath.Exists)
+            {
+                return filePath;
+            }
+
+            if (directory.IsAtRoot)
+            {
+                return null;
+            }
+
+            return FindFileAbove(directory.Parent, fileName);
+        }
+
+        public static AbsoluteDirectoryPath? FindDirectoryAboveContaining(AbsoluteDirectoryPath directory, string directoryName)
+        {
+            var directoryPath = directory.CombineToDirectory(directoryName);
+
+            if (directoryPath.Exists)
+            {
+                return directory;
+            }
+
+            if (directory.IsAtRoot)
+            {
+                return null;
+            }
+
+            return FindDirectoryAboveContaining(directory.Parent, directoryName);
+        }
     }
 }
