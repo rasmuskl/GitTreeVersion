@@ -1,4 +1,6 @@
-﻿using GitTreeVersion.BuildEnvironments;
+﻿using System;
+using System.Linq;
+using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Context
@@ -9,14 +11,24 @@ namespace GitTreeVersion.Context
 
         public static VersionGraph GetVersionGraph(AbsoluteDirectoryPath startingPath, BuildEnvironmentDetector? buildEnvironmentDetector = null)
         {
-            var repositoryRoot = AbsoluteDirectoryPath.FindDirectoryAboveContaining(startingPath, ".git");
+            return GetVersionGraph(new[] { startingPath }, buildEnvironmentDetector);
+        }
+
+        public static VersionGraph GetVersionGraph(AbsoluteDirectoryPath[] startingPaths, BuildEnvironmentDetector? buildEnvironmentDetector = null)
+        {
+            if (!startingPaths.Any())
+            {
+                throw new Exception("No starting paths provided");
+            }
+
+            var repositoryRoot = AbsoluteDirectoryPath.FindDirectoryAboveContaining(startingPaths.First(), ".git");
 
             if (repositoryRoot is null)
             {
                 throw new UserException("Not in a git repository.");
             }
 
-            return new VersionGraph(repositoryRoot, startingPath, buildEnvironmentDetector);
+            return new VersionGraph(repositoryRoot, startingPaths, buildEnvironmentDetector);
         }
     }
 }
