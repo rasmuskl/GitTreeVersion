@@ -37,7 +37,7 @@ namespace GitTreeVersion.Commands
                 return;
             }
 
-            File.WriteAllText(versionConfigPath.ToString(), JsonSerializer.Serialize(new VersionConfig(), JsonOptions.DefaultOptions));
+            File.WriteAllText(versionConfigPath.ToString(), JsonSerializer.Serialize(VersionConfig.Default, JsonOptions.DefaultOptions));
         }
     }
 }

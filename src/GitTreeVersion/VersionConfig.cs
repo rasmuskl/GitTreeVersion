@@ -5,6 +5,7 @@
         public static readonly VersionConfig Default = new()
         {
             Preset = VersionPreset.SemanticVersion,
+            BaseVersion = "0.0.0",
         };
 
         public VersionPreset Preset { get; set; }

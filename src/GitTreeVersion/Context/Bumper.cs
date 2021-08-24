@@ -20,5 +20,6 @@ namespace GitTreeVersion.Context
     {
         Major,
         Minor,
+        Patch,
     }
 }

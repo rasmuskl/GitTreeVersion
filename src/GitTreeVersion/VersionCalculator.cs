@@ -20,7 +20,7 @@ namespace GitTreeVersion
                 return cachedVersion;
             }
 
-            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(graph.VersionRootConfigs[versionRootPath]);
+            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(versionRootPath, graph.VersionRootConfigs[versionRootPath]);
 
             if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.CalendarVersion)
             {

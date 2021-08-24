@@ -1,17 +1,15 @@
-﻿using Semver;
+﻿using GitTreeVersion.Context;
+using GitTreeVersion.Paths;
+
 
 namespace GitTreeVersion.VersionStrategies
 {
     public class SemanticVersioningConfigFileVersionConfiguration : IVersionConfiguration
     {
-        public SemanticVersioningConfigFileVersionConfiguration(VersionConfig versionConfig)
+        public SemanticVersioningConfigFileVersionConfiguration(AbsoluteDirectoryPath versionRootPath, VersionConfig versionConfig)
         {
-            SemVersion semVersion = !string.IsNullOrWhiteSpace(versionConfig.BaseVersion)
-                ? SemVersion.Parse(versionConfig.BaseVersion)
-                : new SemVersion(0);
-
-            Major = new FixedVersionStrategy(semVersion.Major);
-            Minor = new FixedVersionStrategy(semVersion.Minor);
+            Major = new VersionConfigVersionStrategy(versionRootPath, versionConfig, VersionType.Major);
+            Minor = new VersionConfigVersionStrategy(versionRootPath, versionConfig, VersionType.Minor);
         }
 
         public IVersionStrategy Major { get; }
