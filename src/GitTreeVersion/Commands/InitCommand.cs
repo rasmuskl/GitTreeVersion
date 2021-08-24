@@ -5,6 +5,8 @@ using System.IO;
 using System.Text.Json;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
+using Semver;
+using Spectre.Console;
 
 namespace GitTreeVersion.Commands
 {
@@ -37,7 +39,36 @@ namespace GitTreeVersion.Commands
                 return;
             }
 
-            File.WriteAllText(versionConfigPath.ToString(), JsonSerializer.Serialize(VersionConfig.Default, JsonOptions.DefaultOptions));
+            var presetChoice = AnsiConsole.Prompt(new SelectionPrompt<string>()
+                .Title("Which [lime]version preset[/] do you want to use?")
+                .AddChoices(Enum.GetNames<VersionPreset>()));
+
+            var versionPreset = Enum.Parse<VersionPreset>(presetChoice);
+
+            AnsiConsole.MarkupLine($"Version preset: [lime]{versionPreset}[/]");
+
+            var versionConfig = VersionConfig.Default;
+
+            versionConfig.Preset = versionPreset;
+
+            if (versionPreset == VersionPreset.SemanticVersion)
+            {
+                var baseVersionPrompt = new TextPrompt<string>("What is the base version?")
+                    .Validate(s => SemVersion.TryParse(s, out _));
+
+                var baseVersionString = AnsiConsole.Prompt(baseVersionPrompt);
+                var baseVersion = SemVersion.Parse(baseVersionString)
+                    .Change(prerelease: string.Empty);
+
+                versionConfig.BaseVersion = baseVersion.ToString();
+                AnsiConsole.MarkupLine($"Version preset: [lime]{baseVersion}[/]");
+            }
+            else if (versionPreset == VersionPreset.CalendarVersion)
+            {
+                versionConfig.BaseVersion = null;
+            }
+
+            File.WriteAllText(versionConfigPath.ToString(), JsonSerializer.Serialize(versionConfig, JsonOptions.DefaultOptions));
         }
     }
 }
