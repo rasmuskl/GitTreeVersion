@@ -33,7 +33,7 @@ namespace GitTreeVersion.VersionStrategies
             if (versionConfigPath.Exists)
             {
                 var gitDirectory = new GitDirectory(_versionRootPath);
-                var configFileCommits = gitDirectory.GitCommits(range, new[] { ":(glob)version.json" });
+                var configFileCommits = gitDirectory.GitCommits(null, new[] { ":(glob)version.json" });
 
                 if (configFileCommits.Any())
                 {

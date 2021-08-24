@@ -190,18 +190,6 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void SemanticVersion_SingleCommit()
-        {
-            var repositoryPath = CreateGitRepository();
-
-            CommitVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersion });
-
-            var version = CalculateVersion(repositoryPath);
-
-            version.Should().Be(new SemVersion(0, 0, 1));
-        }
-
-        [Test]
         public void OldCsprojProjectReferences()
         {
             var projectPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.csproj");
