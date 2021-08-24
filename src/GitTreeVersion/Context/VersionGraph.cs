@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Deployables;
 using GitTreeVersion.Git;
@@ -138,15 +137,7 @@ namespace GitTreeVersion.Context
 
             foreach (var versionRootPath in versionRootPaths)
             {
-                var filePath = versionRootPath.CombineToFile(ContextResolver.VersionConfigFileName);
-                VersionConfig? versionConfig = null;
-
-                if (filePath.Exists)
-                {
-                    versionConfig = JsonSerializer.Deserialize<VersionConfig>(File.ReadAllText(filePath.ToString()), JsonOptions.DefaultOptions);
-                }
-
-                versionRootConfigs[versionRootPath] = versionConfig ?? VersionConfig.Default;
+                versionRootConfigs[versionRootPath] = VersionConfig.Load(versionRootPath);
             }
 
             foreach (var versionRootPath in versionRootPaths)

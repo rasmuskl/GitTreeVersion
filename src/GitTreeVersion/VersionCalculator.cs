@@ -20,17 +20,7 @@ namespace GitTreeVersion
                 return cachedVersion;
             }
 
-            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(versionRootPath, graph.VersionRootConfigs[versionRootPath]);
-
-            if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.CalendarVersion)
-            {
-                versionConfiguration = new CalendarVersioningVersionConfiguration();
-            }
-
-            if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.SemanticVersionFileBased)
-            {
-                versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration();
-            }
+            var versionConfiguration = GetVersionConfiguration(graph, versionRootPath);
 
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
             var prerelease = GetPrerelease(graph, versionRootPath, relevantPaths);
@@ -43,6 +33,42 @@ namespace GitTreeVersion
             var version = new SemVersion(majorComponent.Version, minorComponent.Version, patchComponent.Version, prerelease);
             _cache[versionRootPath] = version;
             return version;
+        }
+
+        public IVersionConfiguration GetVersionConfiguration(VersionGraph graph, AbsoluteDirectoryPath versionRootPath)
+        {
+            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(versionRootPath, graph.VersionRootConfigs[versionRootPath]);
+
+            if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.CalendarVersion)
+            {
+                versionConfiguration = new CalendarVersioningVersionConfiguration();
+            }
+
+            if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.SemanticVersionFileBased)
+            {
+                versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration();
+            }
+
+            return versionConfiguration;
+        }
+
+        public IVersionConfiguration GetVersionConfiguration(AbsoluteDirectoryPath versionRootPath)
+        {
+            var versionConfig = VersionConfig.Load(versionRootPath);
+
+            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(versionRootPath, versionConfig);
+
+            if (versionConfig.Preset == VersionPreset.CalendarVersion)
+            {
+                versionConfiguration = new CalendarVersioningVersionConfiguration();
+            }
+
+            if (versionConfig.Preset == VersionPreset.SemanticVersionFileBased)
+            {
+                versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration();
+            }
+
+            return versionConfiguration;
         }
 
         private static string? GetPrerelease(VersionGraph graph, AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)

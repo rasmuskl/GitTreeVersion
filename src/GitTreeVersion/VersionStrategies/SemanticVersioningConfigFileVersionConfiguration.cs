@@ -1,7 +1,6 @@
 ﻿using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 
-
 namespace GitTreeVersion.VersionStrategies
 {
     public class SemanticVersioningConfigFileVersionConfiguration : IVersionConfiguration

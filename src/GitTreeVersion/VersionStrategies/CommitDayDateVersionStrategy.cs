@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using GitTreeVersion.Git;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
 {
@@ -38,6 +39,11 @@ namespace GitTreeVersion.VersionStrategies
             range = $"{firstOnDate}..";
 
             return new VersionComponent(int.Parse(newestCommitTimestamp.ToString(_format)), range);
+        }
+
+        public AbsoluteFilePath Bump(AbsoluteDirectoryPath versionRootPath)
+        {
+            throw new UserException("Version bumping is not supported with calendar version strategy.");
         }
     }
 }

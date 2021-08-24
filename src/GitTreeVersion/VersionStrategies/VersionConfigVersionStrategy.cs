@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using GitTreeVersion.Context;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
@@ -9,8 +11,8 @@ namespace GitTreeVersion.VersionStrategies
 {
     public class VersionConfigVersionStrategy : IVersionStrategy
     {
-        private readonly AbsoluteDirectoryPath _versionRootPath;
         private readonly VersionConfig _versionConfig;
+        private readonly AbsoluteDirectoryPath _versionRootPath;
         private readonly VersionType _versionType;
 
         public VersionConfigVersionStrategy(AbsoluteDirectoryPath versionRootPath, VersionConfig versionConfig, VersionType versionType)
@@ -59,6 +61,37 @@ namespace GitTreeVersion.VersionStrategies
             }
 
             throw new Exception($"Unknown version type: {_versionType}");
+        }
+
+        public AbsoluteFilePath Bump(AbsoluteDirectoryPath versionRootPath)
+        {
+            var versionConfigPath = versionRootPath.CombineToFile(ContextResolver.VersionConfigFileName);
+
+            if (!versionConfigPath.Exists)
+            {
+                throw new UserException("Version config file does not exist.");
+            }
+
+            SemVersion version = !string.IsNullOrWhiteSpace(_versionConfig.BaseVersion)
+                ? SemVersion.Parse(_versionConfig.BaseVersion)
+                : new SemVersion(0);
+
+            switch (_versionType)
+            {
+                case VersionType.Major:
+                    version = version.Change(version.Major + 1);
+                    break;
+                case VersionType.Minor:
+                    version = version.Change(minor: version.Minor + 1);
+                    break;
+                case VersionType.Patch:
+                    version = version.Change(patch: version.Patch + 1);
+                    break;
+            }
+
+            _versionConfig.BaseVersion = version.ToString();
+            File.WriteAllText(versionConfigPath.FullName, JsonSerializer.Serialize(_versionConfig, JsonOptions.DefaultOptions));
+            return versionConfigPath;
         }
     }
 }

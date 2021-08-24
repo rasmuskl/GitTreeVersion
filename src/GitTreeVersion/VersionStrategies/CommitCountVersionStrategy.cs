@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using GitTreeVersion.Git;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
 {
@@ -24,6 +25,11 @@ namespace GitTreeVersion.VersionStrategies
 
             var mainBranchCommitCount = commits.Except(otherCommits).Count();
             return new VersionComponent(mainBranchCommitCount + 1, null);
+        }
+
+        public AbsoluteFilePath Bump(AbsoluteDirectoryPath versionRootPath)
+        {
+            throw new UserException("Version bumping is not supported with commit count strategy.");
         }
     }
 }

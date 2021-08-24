@@ -1,5 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
+using GitTreeVersion.Context;
 using GitTreeVersion.Git;
+using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.VersionStrategies
 {
@@ -29,6 +33,15 @@ namespace GitTreeVersion.VersionStrategies
             }
 
             return new VersionComponent(majorVersionFiles.Length, range);
+        }
+
+        public AbsoluteFilePath Bump(AbsoluteDirectoryPath versionRootPath)
+        {
+            var versionBumpDirectoryPath = versionRootPath.CombineToDirectory(".version", VersionType.Major.ToString().ToLowerInvariant());
+            var versionBumpFilePath = versionBumpDirectoryPath.CombineToFile(DateTime.UtcNow.ToString("yyyyMMddHHmmssff"));
+            Directory.CreateDirectory(versionBumpDirectoryPath.ToString());
+            File.WriteAllText(versionBumpFilePath.ToString(), string.Empty);
+            return versionBumpFilePath;
         }
     }
 }
