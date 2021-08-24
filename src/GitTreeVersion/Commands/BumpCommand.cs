@@ -32,10 +32,10 @@ namespace GitTreeVersion.Commands
 
             var versionGraph = ContextResolver.GetVersionGraph(new AbsoluteDirectoryPath(path));
 
-            Console.WriteLine($"Version root path: {versionGraph.VersionRootPath}");
+            Console.WriteLine($"Version root path: {versionGraph.PrimaryVersionRootPath}");
 
             var bumper = new Bumper();
-            bumper.Bump(versionGraph.VersionRootPath, (VersionType)type);
+            bumper.Bump(versionGraph.PrimaryVersionRootPath, (VersionType)type);
         }
 
         private enum VersionTypeOptions

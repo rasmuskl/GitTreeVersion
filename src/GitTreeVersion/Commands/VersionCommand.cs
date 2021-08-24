@@ -35,27 +35,28 @@ namespace GitTreeVersion.Commands
             var versionGraph = ContextResolver.GetVersionGraph(new AbsoluteDirectoryPath(path));
 
             Console.WriteLine($"Repository root: {versionGraph.RepositoryRootPath}");
-            Console.WriteLine($"Version root: {versionGraph.VersionRootPath}");
+            Console.WriteLine($"Primary version root: {versionGraph.PrimaryVersionRootPath}");
 
             var versionCalculator = new VersionCalculator();
-            var version = versionCalculator.GetVersion(versionGraph, versionGraph.VersionRootPath);
+            var primaryVersionRootVersion = versionCalculator.GetVersion(versionGraph, versionGraph.PrimaryVersionRootPath);
 
-            AnsiConsole.MarkupLine($"Version: [lime]{version}[/]");
+            AnsiConsole.MarkupLine($"Version: [lime]{primaryVersionRootVersion}[/]");
 
             if (apply)
             {
                 var relevantDeployables = versionGraph
                     .DeployableFileVersionRoots
-                    .Where(p => p.Value == versionGraph.VersionRootPath)
                     .Select(p => p.Key);
 
                 foreach (var deployablePath in relevantDeployables)
                 {
-                    AnsiConsole.MarkupLine($"Applying version [lime]{version}[/] to: {deployablePath.FullName}");
+                    var deployableVersion = versionCalculator.GetVersion(versionGraph, versionGraph.DeployableFileVersionRoots[deployablePath]);
+
+                    AnsiConsole.MarkupLine($"Applying version [lime]{deployableVersion}[/] to: {deployablePath.FullName}");
 
                     if (versionGraph.Deployables.TryGetValue(deployablePath, out var deployable))
                     {
-                        deployable.ApplyVersion(version);
+                        deployable.ApplyVersion(deployableVersion);
                     }
                     else
                     {

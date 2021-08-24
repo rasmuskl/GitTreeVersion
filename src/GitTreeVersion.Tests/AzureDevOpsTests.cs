@@ -23,7 +23,7 @@ namespace GitTreeVersion.Tests
             var buildEnvironmentDetector = new BuildEnvironmentDetector(environmentAccessor);
 
             var versionGraph = ContextResolver.GetVersionGraph(repositoryPath, buildEnvironmentDetector);
-            var version = new VersionCalculator().GetVersion(versionGraph, versionGraph.VersionRootPath);
+            var version = new VersionCalculator().GetVersion(versionGraph, versionGraph.PrimaryVersionRootPath);
 
             version.Should().Be(new SemVersion(0, 0, 2, "PullRequest.42.1"));
         }

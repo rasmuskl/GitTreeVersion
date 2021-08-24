@@ -134,7 +134,7 @@ namespace GitTreeVersion.Tests
         public static SemVersion CalculateVersion(AbsoluteDirectoryPath repositoryPath)
         {
             var versionGraph = ContextResolver.GetVersionGraph(repositoryPath);
-            return new VersionCalculator().GetVersion(versionGraph, versionGraph.VersionRootPath);
+            return new VersionCalculator().GetVersion(versionGraph, versionGraph.PrimaryVersionRootPath);
         }
     }
 }

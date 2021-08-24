@@ -40,7 +40,7 @@ namespace GitTreeVersion.Context
                 .Select(p => FindPathVersionRoot(p))
                 .ToArray();
 
-            VersionRootPath = startingVersionRootPaths.First();
+            PrimaryVersionRootPath = startingVersionRootPaths.First();
 
             startingVersionRootPaths = startingVersionRootPaths.Distinct().ToArray();
 
@@ -152,7 +152,7 @@ namespace GitTreeVersion.Context
             foreach (var versionRootPath in versionRootPaths)
             {
                 var versionRootParentPath = versionRootPaths
-                    .Where(p => versionRootPath.IsInSubPathOf(p))
+                    .Where(p => p != versionRootPath && versionRootPath.IsInSubPathOf(p))
                     .OrderByDescending(p => p.PathLength)
                     .FirstOrDefault();
 
@@ -187,7 +187,7 @@ namespace GitTreeVersion.Context
             Deployables = deployables.ToDictionary(d => d.FilePath, d => d);
         }
 
-        public AbsoluteDirectoryPath VersionRootPath { get; }
+        public AbsoluteDirectoryPath PrimaryVersionRootPath { get; }
 
         public GitRef? MainBranch { get; }
         public GitRef? CurrentBranch { get; }

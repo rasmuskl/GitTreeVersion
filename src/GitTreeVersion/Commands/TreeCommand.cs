@@ -13,6 +13,8 @@ namespace GitTreeVersion.Commands
 {
     public class TreeCommand : Command
     {
+        private readonly VersionCalculator _versionCalculator = new();
+
         public TreeCommand() : base("tree", "Render repository tree")
         {
             Handler = CommandHandler.Create<bool, string?>(Execute);
@@ -35,10 +37,10 @@ namespace GitTreeVersion.Commands
 
             var versionGraph = ContextResolver.GetVersionGraph(new AbsoluteDirectoryPath(path));
 
-            var version = new VersionCalculator().GetVersion(versionGraph, versionGraph.VersionRootPath);
-            var tree = new Tree($"{versionGraph.VersionRootPath.Name} [grey30][[[/][lime]{version}[/][grey30]]][/]");
+            var version = _versionCalculator.GetVersion(versionGraph, versionGraph.PrimaryVersionRootPath);
+            var tree = new Tree($"{versionGraph.PrimaryVersionRootPath.Name} [grey30][[[/][lime]{version}[/][grey30]]][/]");
 
-            AddVersionRootChildren(tree, versionGraph, versionGraph.VersionRootPath, version);
+            AddVersionRootChildren(tree, versionGraph, versionGraph.PrimaryVersionRootPath, version);
 
             AnsiConsole.Render(tree);
             Log.Debug($"Elapsed: {stopwatch.ElapsedMilliseconds} ms");
@@ -61,7 +63,7 @@ namespace GitTreeVersion.Commands
 
             foreach (var childVersionRoot in childVersionRoots)
             {
-                var childVersion = new VersionCalculator().GetVersion(graph, childVersionRoot);
+                var childVersion = _versionCalculator.GetVersion(graph, childVersionRoot);
                 var treeNode = tree.AddNode($"{Path.GetRelativePath(versionRootPath.ToString(), childVersionRoot.ToString())} [grey30][[[/][lime]{childVersion}[/][grey30]]][/]");
                 AddVersionRootChildren(treeNode, graph, childVersionRoot, childVersion);
             }

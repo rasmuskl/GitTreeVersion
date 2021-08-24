@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Concurrent;
+using System.Linq;
 using System.Text.RegularExpressions;
 using GitTreeVersion.Context;
 using GitTreeVersion.Git;
@@ -10,9 +11,16 @@ namespace GitTreeVersion
 {
     public class VersionCalculator
     {
+        private readonly ConcurrentDictionary<AbsoluteDirectoryPath, SemVersion> _cache = new();
+
         public SemVersion GetVersion(VersionGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
-            IVersionConfiguration versionConfiguration = new SemanticVersioningVersionConfiguration();
+            if (_cache.TryGetValue(versionRootPath, out var cachedVersion))
+            {
+                return cachedVersion;
+            }
+
+            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(graph.VersionRootConfigs[versionRootPath]);
 
             if (graph.VersionRootConfigs[versionRootPath].Mode == VersionMode.CalendarVersion)
             {
@@ -21,7 +29,7 @@ namespace GitTreeVersion
 
             if (graph.VersionRootConfigs[versionRootPath].Mode == VersionMode.SemanticVersionFileBased)
             {
-                versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration(graph.VersionRootConfigs[versionRootPath]);
+                versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration();
             }
 
             var relevantPaths = graph.GetRelevantPathsForVersionRoot(versionRootPath);
@@ -32,7 +40,9 @@ namespace GitTreeVersion
             var minorComponent = versionConfiguration.Minor.GetVersionComponent(versionComponentContext, majorComponent.Range);
             var patchComponent = versionConfiguration.Patch.GetVersionComponent(versionComponentContext, minorComponent.Range);
 
-            return new SemVersion(majorComponent.Version, minorComponent.Version, patchComponent.Version, prerelease);
+            var version = new SemVersion(majorComponent.Version, minorComponent.Version, patchComponent.Version, prerelease);
+            _cache[versionRootPath] = version;
+            return version;
         }
 
         private static string? GetPrerelease(VersionGraph graph, AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)
