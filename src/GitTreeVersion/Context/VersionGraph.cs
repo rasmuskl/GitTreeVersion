@@ -37,64 +37,108 @@ namespace GitTreeVersion.Context
             var versionRootConfigs = new Dictionary<AbsoluteDirectoryPath, VersionConfig>();
 
             var startingVersionRootPaths = startingPaths
-                .Select(p => AbsoluteDirectoryPath.FindFileAbove(p, ContextResolver.VersionConfigFileName)?.Parent ?? RepositoryRootPath)
+                .Select(p => FindPathVersionRoot(p))
                 .ToArray();
 
             VersionRootPath = startingVersionRootPaths.First();
 
             startingVersionRootPaths = startingVersionRootPaths.Distinct().ToArray();
 
+            var versionRootQueue = new Queue<AbsoluteDirectoryPath>(startingVersionRootPaths);
             var deployableQueue = new Queue<AbsoluteFilePath>();
 
-            foreach (var startingVersionRootPath in startingVersionRootPaths)
+            var deployableVersionRoots = new Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath>();
+            var deployableDependencies = new Dictionary<AbsoluteFilePath, AbsoluteFilePath[]>();
+            var deployableFilePaths = new HashSet<AbsoluteFilePath>();
+            var deployables = new List<IDeployable>();
+
+            while (versionRootQueue.Any() || deployableQueue.Any())
             {
-                var versionRootStack = new Stack<AbsoluteDirectoryPath>();
-
-                versionRootStack.Push(startingVersionRootPath);
-                versionRootPaths.Add(startingVersionRootPath);
-                versionRootParents[startingVersionRootPath] = null;
-
-                var gitDirectory = new GitDirectory(startingVersionRootPath);
-                var versionDirectoryPaths = gitDirectory.GitFindFiles(new[] { ":(glob)**/version.json" }, true)
-                    .Select(Path.GetDirectoryName)
-                    .OrderBy(p => p);
-
-                foreach (var versionDirectoryPath in versionDirectoryPaths)
+                if (versionRootQueue.TryDequeue(out var nextVersionRoot))
                 {
-                    if (string.IsNullOrEmpty(versionDirectoryPath))
+                    if (versionRootPaths.Contains(nextVersionRoot))
                     {
                         continue;
                     }
 
-                    var rootPath = VersionRootPath.CombineToDirectory(versionDirectoryPath);
+                    Log.Debug($"Processing version root: [lime]{nextVersionRoot}[/]");
 
-                    var potentialParent = versionRootStack.Peek();
+                    versionRootPaths.Add(nextVersionRoot);
+                    versionRootParents[nextVersionRoot] = null;
 
-                    while (!rootPath.IsInSubPathOf(potentialParent))
+                    var gitDirectory = new GitDirectory(nextVersionRoot);
+                    var relevantDeployableFiles = gitDirectory.GitFindFiles(new[] { ":(glob)**/*.csproj", ":(glob)**/package.json" }, true);
+
+                    var relevantDeployableFilePaths = relevantDeployableFiles
+                        .Select(f => nextVersionRoot.CombineToFile(f));
+
+                    foreach (var relevantDeployableFilePath in relevantDeployableFilePaths)
                     {
-                        versionRootStack.Pop();
-                        potentialParent = versionRootStack.Peek();
+                        deployableQueue.Enqueue(relevantDeployableFilePath);
                     }
 
-                    versionRootParents[rootPath] = potentialParent;
-                    versionRootStack.Push(rootPath);
-                    versionRootPaths.Add(rootPath);
+                    var versionDirectoryPaths = gitDirectory.GitFindFiles(new[] { ":(glob)**/version.json" }, true)
+                        .Select(Path.GetDirectoryName)
+                        .OrderBy(p => p);
+
+                    foreach (var versionDirectoryPath in versionDirectoryPaths)
+                    {
+                        if (string.IsNullOrEmpty(versionDirectoryPath))
+                        {
+                            continue;
+                        }
+
+                        versionRootQueue.Enqueue(nextVersionRoot.CombineToDirectory(versionDirectoryPath));
+                    }
                 }
-
-                var relevantDeployableFiles = gitDirectory.GitFindFiles(new[] { ":(glob)**/*.csproj", ":(glob)**/package.json" }, true);
-
-                var relevantDeployableFilePaths = relevantDeployableFiles
-                    .Select(f => startingVersionRootPath.CombineToFile(f));
-
-                foreach (var relevantDeployableFilePath in relevantDeployableFilePaths)
+                else if (deployableQueue.TryDequeue(out var deployableFilePath))
                 {
-                    deployableQueue.Enqueue(relevantDeployableFilePath);
+                    if (deployableFilePaths.Contains(deployableFilePath))
+                    {
+                        continue;
+                    }
+
+                    Log.Debug($"Processing deployable: [lime]{deployableFilePath}[/]");
+
+                    if (!deployableFilePath.Exists)
+                    {
+                        Log.Warning($"File not found: {deployableFilePath}");
+                        continue;
+                    }
+
+                    var deployable = _deployableResolver.Resolve(deployableFilePath);
+
+                    if (deployable is null)
+                    {
+                        Log.Warning($"Unknown deployable: {deployableFilePath}");
+                        continue;
+                    }
+
+                    deployables.Add(deployable);
+
+                    foreach (var path in deployable.ReferencedDeployablePaths)
+                    {
+                        if (deployableFilePaths.Contains(path))
+                        {
+                            continue;
+                        }
+
+                        deployableQueue.Enqueue(path);
+                    }
+
+                    deployableFilePaths.Add(deployableFilePath);
+
+                    if (!versionRootPaths.Any(p => deployable.FilePath.IsInSubPathOf(p)))
+                    {
+                        var versionRoot = FindPathVersionRoot(deployable.FilePath.Parent);
+                        versionRootQueue.Enqueue(versionRoot);
+                    }
                 }
             }
 
-            foreach (var rootPath in versionRootPaths)
+            foreach (var versionRootPath in versionRootPaths)
             {
-                var filePath = rootPath.CombineToFile(ContextResolver.VersionConfigFileName);
+                var filePath = versionRootPath.CombineToFile(ContextResolver.VersionConfigFileName);
                 VersionConfig? versionConfig = null;
 
                 if (filePath.Exists)
@@ -102,52 +146,22 @@ namespace GitTreeVersion.Context
                     versionConfig = JsonSerializer.Deserialize<VersionConfig>(File.ReadAllText(filePath.ToString()), JsonOptions.DefaultOptions);
                 }
 
-                versionRootConfigs[rootPath] = versionConfig ?? VersionConfig.Default;
+                versionRootConfigs[versionRootPath] = versionConfig ?? VersionConfig.Default;
             }
 
-            VersionRootPaths = versionRootPaths.ToArray();
-            VersionRootParents = versionRootParents;
-            VersionRootConfigs = versionRootConfigs;
-
-            var deployableVersionRoots = new Dictionary<AbsoluteFilePath, AbsoluteDirectoryPath>();
-            var deployableDependencies = new Dictionary<AbsoluteFilePath, AbsoluteFilePath[]>();
-            var deployableFilePaths = new HashSet<AbsoluteFilePath>();
-            var deployables = new List<IDeployable>();
-
-            while (deployableQueue.TryDequeue(out var deployableFilePath))
+            foreach (var versionRootPath in versionRootPaths)
             {
-                if (deployableFilePaths.Contains(deployableFilePath))
+                var versionRootParentPath = versionRootPaths
+                    .Where(p => versionRootPath.IsInSubPathOf(p))
+                    .OrderByDescending(p => p.PathLength)
+                    .FirstOrDefault();
+
+                if (versionRootParentPath is null)
                 {
                     continue;
                 }
 
-                if (!deployableFilePath.Exists)
-                {
-                    Log.Warning($"File not found: {deployableFilePath}");
-                    continue;
-                }
-
-                var deployable = _deployableResolver.Resolve(deployableFilePath);
-
-                if (deployable is null)
-                {
-                    Log.Warning($"Unknown deployable: {deployableFilePath}");
-                    continue;
-                }
-
-                deployables.Add(deployable);
-
-                foreach (var path in deployable.ReferencedDeployablePaths)
-                {
-                    if (deployableFilePaths.Contains(path))
-                    {
-                        continue;
-                    }
-
-                    deployableQueue.Enqueue(path);
-                }
-
-                deployableFilePaths.Add(deployableFilePath);
+                versionRootParents[versionRootPath] = versionRootParentPath;
             }
 
             foreach (var deployable in deployables)
@@ -165,6 +179,9 @@ namespace GitTreeVersion.Context
                 deployableVersionRoots[deployable.FilePath] = deployableVersionRoot;
             }
 
+            VersionRootPaths = versionRootPaths.ToArray();
+            VersionRootParents = versionRootParents;
+            VersionRootConfigs = versionRootConfigs;
             DeployableFileDependencies = deployableDependencies;
             DeployableFileVersionRoots = deployableVersionRoots;
             Deployables = deployables.ToDictionary(d => d.FilePath, d => d);
@@ -182,6 +199,11 @@ namespace GitTreeVersion.Context
         public AbsoluteDirectoryPath[] VersionRootPaths { get; }
         public Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?> VersionRootParents { get; }
         public Dictionary<AbsoluteDirectoryPath, VersionConfig> VersionRootConfigs { get; }
+
+        private AbsoluteDirectoryPath FindPathVersionRoot(AbsoluteDirectoryPath p)
+        {
+            return AbsoluteDirectoryPath.FindFileAbove(p, ContextResolver.VersionConfigFileName)?.Parent ?? RepositoryRootPath;
+        }
 
         public AbsoluteDirectoryPath[] GetRelevantPathsForVersionRoot(AbsoluteDirectoryPath versionRootPath)
         {
