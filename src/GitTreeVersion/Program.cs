@@ -25,7 +25,17 @@ namespace GitTreeVersion
             rootCommand.AddCommand(new BumpCommand());
 
             var commandLineBuilder = new CommandLineBuilder(rootCommand)
-                .UseExceptionHandler(OnException);
+                .UseVersionOption()
+                .UseHelp()
+                .UseEnvironmentVariableDirective()
+                .UseParseDirective()
+                .UseDebugDirective()
+                .UseSuggestDirective()
+                .RegisterWithDotnetSuggest()
+                .UseTypoCorrections()
+                .UseParseErrorReporting()
+                .UseExceptionHandler(OnException)
+                .CancelOnProcessTermination();
 
             var parser = commandLineBuilder.Build();
             return await parser.InvokeAsync(args);
