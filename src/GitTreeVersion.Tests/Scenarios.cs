@@ -159,9 +159,9 @@ namespace GitTreeVersion.Tests
 
             var versionConfigs = new[]
             {
-                new VersionConfig { Mode = VersionMode.SemanticVersion, Version = "1.0.0" },
-                new VersionConfig { Mode = VersionMode.SemanticVersion, Version = "1.1.0" },
-                new VersionConfig { Mode = VersionMode.SemanticVersion, Version = "1.2.0" },
+                new VersionConfig { Preset = VersionPreset.SemanticVersion, BaseVersion = "1.0.0" },
+                new VersionConfig { Preset = VersionPreset.SemanticVersion, BaseVersion = "1.1.0" },
+                new VersionConfig { Preset = VersionPreset.SemanticVersion, BaseVersion = "1.2.0" },
             };
 
             foreach (var versionConfig in versionConfigs)
@@ -184,8 +184,8 @@ namespace GitTreeVersion.Tests
                 var deserializedVersionConfig = JsonSerializer.Deserialize<VersionConfig>(commitContents[i].Content, JsonOptions.DefaultOptions);
 
                 deserializedVersionConfig.Should().NotBeNull();
-                serializedVersionConfig.Mode.Should().Be(deserializedVersionConfig!.Mode);
-                serializedVersionConfig.Version.Should().Be(deserializedVersionConfig.Version);
+                serializedVersionConfig.Preset.Should().Be(deserializedVersionConfig!.Preset);
+                serializedVersionConfig.BaseVersion.Should().Be(deserializedVersionConfig.BaseVersion);
             }
         }
 
@@ -194,7 +194,7 @@ namespace GitTreeVersion.Tests
         {
             var repositoryPath = CreateGitRepository();
 
-            CommitVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersion });
+            CommitVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersion });
 
             var version = CalculateVersion(repositoryPath);
 

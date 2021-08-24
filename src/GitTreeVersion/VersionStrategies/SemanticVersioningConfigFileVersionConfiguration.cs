@@ -6,8 +6,8 @@ namespace GitTreeVersion.VersionStrategies
     {
         public SemanticVersioningConfigFileVersionConfiguration(VersionConfig versionConfig)
         {
-            SemVersion semVersion = !string.IsNullOrWhiteSpace(versionConfig.Version)
-                ? SemVersion.Parse(versionConfig.Version)
+            SemVersion semVersion = !string.IsNullOrWhiteSpace(versionConfig.BaseVersion)
+                ? SemVersion.Parse(versionConfig.BaseVersion)
                 : new SemVersion(0);
 
             Major = new FixedVersionStrategy(semVersion.Major);

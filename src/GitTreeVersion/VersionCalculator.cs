@@ -22,12 +22,12 @@ namespace GitTreeVersion
 
             IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(graph.VersionRootConfigs[versionRootPath]);
 
-            if (graph.VersionRootConfigs[versionRootPath].Mode == VersionMode.CalendarVersion)
+            if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.CalendarVersion)
             {
                 versionConfiguration = new CalendarVersioningVersionConfiguration();
             }
 
-            if (graph.VersionRootConfigs[versionRootPath].Mode == VersionMode.SemanticVersionFileBased)
+            if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.SemanticVersionFileBased)
             {
                 versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration();
             }

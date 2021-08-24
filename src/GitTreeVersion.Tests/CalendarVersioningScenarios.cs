@@ -13,7 +13,7 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
 
             var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
-            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.CalendarVersion });
+            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.CalendarVersion });
             CommitFile(repositoryPath, filePath, commitTime);
 
             var version = CalculateVersion(repositoryPath);
@@ -27,7 +27,7 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
 
             var commitTime = new DateTimeOffset(2021, 1, 1, 10, 42, 5, TimeSpan.Zero);
-            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.CalendarVersion });
+            var filePath = WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.CalendarVersion });
             CommitFile(repositoryPath, filePath, commitTime);
 
             CommitNewFile(repositoryPath, commitTime.Add(TimeSpan.FromSeconds(5)));

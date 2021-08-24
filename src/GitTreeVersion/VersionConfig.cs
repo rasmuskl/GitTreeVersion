@@ -4,14 +4,14 @@
     {
         public static readonly VersionConfig Default = new()
         {
-            Mode = VersionMode.SemanticVersion,
+            Preset = VersionPreset.SemanticVersion,
         };
 
-        public VersionMode Mode { get; set; }
-        public string? Version { get; set; }
+        public VersionPreset Preset { get; set; }
+        public string? BaseVersion { get; set; }
     }
 
-    public enum VersionMode
+    public enum VersionPreset
     {
         SemanticVersion,
         CalendarVersion,

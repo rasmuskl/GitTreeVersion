@@ -13,7 +13,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MinorVersion()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var bumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, bumpFile);
@@ -27,7 +27,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MajorVersion()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var bumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, bumpFile);
@@ -41,7 +41,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MinorThenMajorVersion()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
@@ -58,7 +58,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MajorThenMinorVersion()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
@@ -75,7 +75,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MajorThenMinorThenChangeMajor()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
@@ -95,7 +95,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MajorThenMinorThenMoveMajor()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
@@ -114,7 +114,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MajorThenMinorThenTCommitThenChangeMinor()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
@@ -137,7 +137,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MajorThenMinorThenTCommitThenMoveMinor()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile, commitMessage: "bump major version");
@@ -162,7 +162,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MinorThenCommitThenChangeMinor()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
@@ -181,7 +181,7 @@ namespace GitTreeVersion.Tests
         public void FileBasedVersioning_MinorThenChangeThenMoveMinor()
         {
             var repositoryPath = CreateGitRepository();
-            WriteVersionConfig(repositoryPath, new VersionConfig { Mode = VersionMode.SemanticVersionFileBased });
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
             var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
