@@ -12,15 +12,16 @@ namespace GitTreeVersion.Commands
 {
     public class VersionCommand : Command
     {
-        public VersionCommand() : base("version", "Versions the thing")
+        public VersionCommand() : base("version", "Calculate versions for closest version root")
         {
-            Handler = CommandHandler.Create<bool, bool, string?>(Execute);
+            Handler = CommandHandler.Create<bool, bool, bool, string?>(Execute);
 
             AddOption(new Option<bool>("--apply"));
+            AddOption(new Option<bool>("--set-build-number"));
             AddArgument(new Argument<string?>("path", () => null));
         }
 
-        private void Execute(bool apply, bool debug, string? path)
+        private void Execute(bool apply, bool debug, bool setBuildNumber, string? path)
         {
             Log.IsDebug = debug;
 
@@ -41,6 +42,16 @@ namespace GitTreeVersion.Commands
             var primaryVersionRootVersion = versionCalculator.GetVersion(versionGraph, versionGraph.PrimaryVersionRootPath);
 
             AnsiConsole.MarkupLine($"Version: [lime]{primaryVersionRootVersion}[/]");
+
+            if (setBuildNumber)
+            {
+                if (versionGraph.BuildEnvironment is null)
+                {
+                    throw new UserException("No build environment detected to set build number.");
+                }
+
+                versionGraph.BuildEnvironment.SetBuildNumber(primaryVersionRootVersion);
+            }
 
             if (apply)
             {

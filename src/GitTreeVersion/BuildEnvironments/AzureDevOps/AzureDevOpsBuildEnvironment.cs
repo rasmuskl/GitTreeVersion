@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
+using Semver;
 
 namespace GitTreeVersion.BuildEnvironments.AzureDevOps
 {
@@ -11,6 +13,11 @@ namespace GitTreeVersion.BuildEnvironments.AzureDevOps
         public AzureDevOpsBuildEnvironment(IEnvironmentAccessor environmentAccessor)
         {
             _environmentAccessor = environmentAccessor;
+        }
+
+        public void SetBuildNumber(SemVersion version)
+        {
+            Console.WriteLine($"##vso[build.updatebuildnumber]{version}");
         }
 
         public string? GetPrerelease(AbsoluteDirectoryPath versionRootPath, AbsoluteDirectoryPath[] relevantPaths)
