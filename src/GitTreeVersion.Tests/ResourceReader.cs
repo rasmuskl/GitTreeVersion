@@ -9,6 +9,8 @@ namespace GitTreeVersion.Tests
         public static string CatapultCsproj => ReadAsString("Catapult.csproj.xml");
         public static string GitTreeVersionTestsCsproj => ReadAsString("GitTreeVersion.Tests.csproj.xml");
 
+        public static string BasicChartYaml => ReadAsString("Basic.Chart.yaml");
+
         public static string ReadAsString(string resourceName)
         {
             using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"GitTreeVersion.Tests.Resources.{resourceName}");

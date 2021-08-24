@@ -6,6 +6,7 @@ using FluentAssertions;
 using GitTreeVersion.Context;
 using GitTreeVersion.Deployables;
 using GitTreeVersion.Deployables.DotNet;
+using GitTreeVersion.Deployables.Helm;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 using NUnit.Framework;
@@ -213,6 +214,24 @@ namespace GitTreeVersion.Tests
             deployable.Should().NotBeNull();
             deployable.Should().BeOfType<DotNetSdkStyleProject>();
             deployable!.ReferencedDeployablePaths.Length.Should().Be(1);
+        }
+
+        [Test]
+        public void HelmChartApply()
+        {
+            var chartPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "Chart.yaml");
+            Directory.CreateDirectory(Path.GetDirectoryName(chartPath)!);
+            File.WriteAllText(chartPath, ResourceReader.BasicChartYaml);
+
+            var deployable = new DeployableResolver().Resolve(new AbsoluteFilePath(chartPath));
+
+            deployable.Should().NotBeNull();
+            deployable.Should().BeOfType<HelmChart>();
+
+            deployable!.ApplyVersion(new SemVersion(1));
+            var result = File.ReadAllText(chartPath);
+
+            result.Should().Contain("version: 1.0.0");
         }
     }
 }

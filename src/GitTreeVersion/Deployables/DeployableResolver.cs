@@ -2,6 +2,7 @@
 using System.Xml.Linq;
 using System.Xml.XPath;
 using GitTreeVersion.Deployables.DotNet;
+using GitTreeVersion.Deployables.Helm;
 using GitTreeVersion.Deployables.Npm;
 using GitTreeVersion.Paths;
 
@@ -14,6 +15,11 @@ namespace GitTreeVersion.Deployables
             if (filePath.FileName == "package.json")
             {
                 return new NpmProject(filePath);
+            }
+
+            if (filePath.FileName == "Chart.yaml")
+            {
+                return new HelmChart(filePath);
             }
 
             if (filePath.Extension == ".csproj")

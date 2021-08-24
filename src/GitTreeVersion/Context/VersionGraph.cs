@@ -66,7 +66,7 @@ namespace GitTreeVersion.Context
                     versionRootParents[nextVersionRoot] = null;
 
                     var gitDirectory = new GitDirectory(nextVersionRoot);
-                    var relevantDeployableFiles = gitDirectory.GitFindFiles(new[] { ":(glob)**/*.csproj", ":(glob)**/package.json" }, true);
+                    var relevantDeployableFiles = gitDirectory.GitFindFiles(new[] { ":(glob)**/*.csproj", ":(glob)**/package.json", ":(glob)**/Chart.yaml" }, true);
 
                     var relevantDeployableFilePaths = relevantDeployableFiles
                         .Select(f => nextVersionRoot.CombineToFile(f));
