@@ -26,6 +26,13 @@ In addition to this, different software benefits from different versioning schem
 - Version root
 - Deployable
 
+### Supported Deployables
+
+- .NET Core / .NET 5+ projects - *.csproj
+- .NET Framework projects - *.csproj
+- Npm packages - package.json
+- Helm Charts - Chart.yaml
+
 ## Usage
 
 The command line tool `gtv` can be installed as a dotnet tool using: 
