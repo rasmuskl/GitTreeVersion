@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GitTreeVersion.BuildEnvironments;
@@ -114,6 +115,7 @@ namespace GitTreeVersion.Context
                     }
 
                     deployables.Add(deployable);
+                    deployableDependencies[deployableFilePath] = deployable.ReferencedDeployablePaths;
 
                     foreach (var path in deployable.ReferencedDeployablePaths)
                     {
