@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GitTreeVersion.BuildEnvironments;
@@ -254,6 +253,17 @@ namespace GitTreeVersion.Context
                     yield return dependencyPath;
                 }
             }
+        }
+
+        public AbsoluteFilePath[] GetRelevantDeployablesForVersionRoot(AbsoluteDirectoryPath versionRootPath)
+        {
+            var versionRootDeployables = DeployableFileVersionRoots
+                .Where(x => x.Value == versionRootPath)
+                .Select(p => p.Key);
+
+            return GetReachableDeployables(versionRootDeployables)
+                .Distinct()
+                .ToArray();
         }
     }
 }

@@ -8,6 +8,7 @@ namespace GitTreeVersion.Tests
     {
         public static string CatapultCsproj => ReadAsString("Catapult.csproj.xml");
         public static string GitTreeVersionTestsCsproj => ReadAsString("GitTreeVersion.Tests.csproj.xml");
+        public static string MinimalCsproj => ReadAsString("Minimal.csproj.xml");
 
         public static string BasicChartYaml => ReadAsString("Basic.Chart.yaml");
 

@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
 using GitTreeVersion.BuildEnvironments;
 using GitTreeVersion.Context;
 using GitTreeVersion.Git;
@@ -114,18 +118,19 @@ namespace GitTreeVersion.Tests
             return new AbsoluteDirectoryPath(repositoryPath);
         }
 
-        public void CommitVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig, string? commitMessage = null)
+        public void CommitVersionConfig(AbsoluteDirectoryPath configDirectoryPath, VersionConfig versionConfig, string? commitMessage = null)
         {
-            WriteVersionConfig(repositoryPath, versionConfig);
+            WriteVersionConfig(configDirectoryPath, versionConfig);
 
-            var gitDirectory = new GitDirectory(repositoryPath);
+            var gitDirectory = new GitDirectory(configDirectoryPath);
             gitDirectory.RunGit("add", "--all");
             gitDirectory.RunGit("commit", "--all", "--message", commitMessage ?? Guid.NewGuid().ToString());
         }
 
         public AbsoluteFilePath WriteVersionConfig(AbsoluteDirectoryPath repositoryPath, VersionConfig versionConfig)
         {
-            var filePath = Path.Combine(repositoryPath.ToString(), ContextResolver.VersionConfigFileName);
+            Directory.CreateDirectory(repositoryPath.FullName);
+            var filePath = Path.Combine(repositoryPath.FullName, ContextResolver.VersionConfigFileName);
             File.WriteAllText(filePath, JsonSerializer.Serialize(versionConfig, JsonOptions.DefaultOptions));
 
             return new AbsoluteFilePath(filePath);
@@ -135,6 +140,38 @@ namespace GitTreeVersion.Tests
         {
             var versionGraph = ContextResolver.GetVersionGraph(repositoryPath);
             return new VersionCalculator().GetVersion(versionGraph, versionGraph.PrimaryVersionRootPath);
+        }
+
+        public void CommitCsprojFile(AbsoluteDirectoryPath repositoryPath, AbsoluteFilePath projectFilePath, AbsoluteFilePath[]? projectReferenceFilePaths = null)
+        {
+            Directory.CreateDirectory(projectFilePath.Parent.FullName);
+
+            var minimalCsproj = ResourceReader.MinimalCsproj;
+
+            var document = XDocument.Parse(minimalCsproj, LoadOptions.PreserveWhitespace);
+
+            var writerSettings = new XmlWriterSettings { OmitXmlDeclaration = true };
+
+            if (projectReferenceFilePaths?.Any() == true)
+            {
+                var itemGroupElement = document.XPathSelectElement("//ItemGroup");
+
+                if (itemGroupElement is null)
+                {
+                    throw new Exception("ItemGroup not found");
+                }
+
+                foreach (var projectReferenceFilePath in projectReferenceFilePaths)
+                {
+                    var relativePath = Path.GetRelativePath(projectFilePath.Parent.FullName, projectReferenceFilePath.FullName);
+                    itemGroupElement.Add(new XElement("ProjectReference", new XAttribute("Include", relativePath)));
+                }
+            }
+
+            using var xmlWriter = XmlWriter.Create(projectFilePath.FullName, writerSettings);
+            document.Save(xmlWriter);
+
+            CommitFile(repositoryPath, projectFilePath);
         }
     }
 }

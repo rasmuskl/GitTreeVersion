@@ -3,7 +3,6 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using GitTreeVersion.Context;
 using GitTreeVersion.Paths;
 using Spectre.Console;
@@ -55,9 +54,7 @@ namespace GitTreeVersion.Commands
 
             if (apply)
             {
-                var relevantDeployables = versionGraph
-                    .DeployableFileVersionRoots
-                    .Select(p => p.Key);
+                var relevantDeployables = versionGraph.GetRelevantDeployablesForVersionRoot(versionGraph.PrimaryVersionRootPath);
 
                 foreach (var deployablePath in relevantDeployables)
                 {
