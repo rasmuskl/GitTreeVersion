@@ -33,7 +33,7 @@ namespace GitTreeVersion.VersionStrategies
 
             Log.Debug($"Since date: {newestCommitDate}");
 
-            var gitCommits = gitDirectory.GitCommits(null, pathSpecs, newestCommitDate, newestCommitTimestamp);
+            var gitCommits = gitDirectory.GitCommits(null, pathSpecs, newestCommitDate);
             var firstOnDate = gitCommits.Last();
             Log.Debug($"First on date: {firstOnDate}");
             range = $"{firstOnDate}..";
