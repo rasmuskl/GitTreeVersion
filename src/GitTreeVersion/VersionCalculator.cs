@@ -37,7 +37,7 @@ namespace GitTreeVersion
 
         public IVersionConfiguration GetVersionConfiguration(VersionGraph graph, AbsoluteDirectoryPath versionRootPath)
         {
-            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(versionRootPath, graph.VersionRootConfigs[versionRootPath]);
+            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(graph.RepositoryRootPath, versionRootPath, graph.VersionRootConfigs[versionRootPath]);
 
             if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.CalendarVersion)
             {
@@ -45,25 +45,6 @@ namespace GitTreeVersion
             }
 
             if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.SemanticVersionFileBased)
-            {
-                versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration();
-            }
-
-            return versionConfiguration;
-        }
-
-        public IVersionConfiguration GetVersionConfiguration(AbsoluteDirectoryPath versionRootPath)
-        {
-            var versionConfig = VersionConfig.Load(versionRootPath);
-
-            IVersionConfiguration versionConfiguration = new SemanticVersioningConfigFileVersionConfiguration(versionRootPath, versionConfig);
-
-            if (versionConfig.Preset == VersionPreset.CalendarVersion)
-            {
-                versionConfiguration = new CalendarVersioningVersionConfiguration();
-            }
-
-            if (versionConfig.Preset == VersionPreset.SemanticVersionFileBased)
             {
                 versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration();
             }

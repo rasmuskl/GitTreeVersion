@@ -6,9 +6,9 @@ namespace GitTreeVersion.Context
     {
         private readonly VersionCalculator _versionCalculator = new();
 
-        public AbsoluteFilePath Bump(AbsoluteDirectoryPath versionRootPath, VersionType versionType)
+        public AbsoluteFilePath Bump(VersionGraph versionGraph, AbsoluteDirectoryPath versionRootPath, VersionType versionType)
         {
-            var versionConfiguration = _versionCalculator.GetVersionConfiguration(versionRootPath);
+            var versionConfiguration = _versionCalculator.GetVersionConfiguration(versionGraph, versionRootPath);
 
             switch (versionType)
             {

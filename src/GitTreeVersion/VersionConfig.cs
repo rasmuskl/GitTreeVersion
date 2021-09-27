@@ -10,11 +10,12 @@ namespace GitTreeVersion
         public static readonly VersionConfig Default = new()
         {
             Preset = VersionPreset.SemanticVersion,
-            BaseVersion = "0.0.0",
         };
 
         public VersionPreset Preset { get; set; }
         public string? BaseVersion { get; set; }
+
+        public string[]? ExtraDirectories { get; set; }
 
         public static VersionConfig Load(AbsoluteDirectoryPath versionRootPath)
         {
@@ -23,10 +24,21 @@ namespace GitTreeVersion
 
             if (filePath.Exists)
             {
-                versionConfig = JsonSerializer.Deserialize<VersionConfig>(File.ReadAllText(filePath.ToString()), JsonOptions.DefaultOptions);
+                var json = File.ReadAllText(filePath.ToString());
+                versionConfig = FromJson(json);
             }
 
             return versionConfig ?? Default;
+        }
+
+        public static VersionConfig? FromJson(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            return JsonSerializer.Deserialize<VersionConfig>(json, JsonOptions.DefaultOptions);
         }
     }
 

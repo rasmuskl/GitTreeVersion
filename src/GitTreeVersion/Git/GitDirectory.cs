@@ -255,7 +255,10 @@ namespace GitTreeVersion.Git
             foreach (var commit in commits)
             {
                 args.Add(commit);
-                args.Add($"{commit}:{Path.GetRelativePath(_workingDirectory.FullName, filePath)}");
+                var relativePath = Path.GetRelativePath(_workingDirectory.FullName, filePath);
+                // Backslash version fails on Windows for git show
+                var relativePathSlashed = relativePath.Replace("\\", "/");
+                args.Add($"{commit}:{relativePathSlashed}");
             }
 
             var output = RunGit(args.ToArray());

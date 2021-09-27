@@ -12,11 +12,13 @@ namespace GitTreeVersion.VersionStrategies
     public class VersionConfigVersionStrategy : IVersionStrategy
     {
         private readonly VersionConfig _versionConfig;
+        private readonly AbsoluteDirectoryPath _repositoryRootPath;
         private readonly AbsoluteDirectoryPath _versionRootPath;
         private readonly VersionType _versionType;
 
-        public VersionConfigVersionStrategy(AbsoluteDirectoryPath versionRootPath, VersionConfig versionConfig, VersionType versionType)
+        public VersionConfigVersionStrategy(AbsoluteDirectoryPath repositoryRootPath, AbsoluteDirectoryPath versionRootPath, VersionConfig versionConfig, VersionType versionType)
         {
+            _repositoryRootPath = repositoryRootPath;
             _versionRootPath = versionRootPath;
             _versionConfig = versionConfig;
             _versionType = versionType;
@@ -24,24 +26,21 @@ namespace GitTreeVersion.VersionStrategies
 
         public VersionComponent GetVersionComponent(VersionComponentContext context, string? range)
         {
-            SemVersion version = !string.IsNullOrWhiteSpace(_versionConfig.BaseVersion)
-                ? SemVersion.Parse(_versionConfig.BaseVersion)
-                : new SemVersion(0);
+            SemVersion version = new(0);
 
             var versionConfigPath = _versionRootPath.CombineToFile(ContextResolver.VersionConfigFileName);
 
             if (versionConfigPath.Exists)
             {
-                var gitDirectory = new GitDirectory(_versionRootPath);
-                var configFileCommits = gitDirectory.GitCommits(null, new[] { ":(glob)version.json" });
+                var gitDirectory = new GitDirectory(_repositoryRootPath);
 
-                if (configFileCommits.Any())
+                var historyEntries = gitDirectory.FileCommitHistory(versionConfigPath.FullName);
+                var (v, e) = GetCurrentVersionIntroduced(versionConfigPath, historyEntries);
+                version = v;
+
+                if (e is not null)
                 {
-                    range = $"{configFileCommits.First()}..";
-                }
-                else
-                {
-                    range = "HEAD..";
+                    range = $"{e.CommitSha}..";
                 }
             }
 
@@ -61,6 +60,55 @@ namespace GitTreeVersion.VersionStrategies
             }
 
             throw new Exception($"Unknown version type: {_versionType}");
+        }
+
+        private static (SemVersion, FileCommitContent?) GetCurrentVersionIntroduced(AbsoluteFilePath versionConfigPath, FileCommitContent[] historyEntries)
+        {
+            var firstEntry = historyEntries.FirstOrDefault();
+
+            if (firstEntry is null)
+            {
+                return (new SemVersion(0), null);
+            }
+
+            var firstConfig = VersionConfig.FromJson(firstEntry.Content);
+            FileCommitContent? entry = null;
+            var semVersion = new SemVersion(0);
+
+            if (firstConfig?.BaseVersion is not null)
+            {
+                entry = firstEntry;
+
+                if (!SemVersion.TryParse(firstConfig.BaseVersion, out semVersion))
+                {
+                    throw new UserException($"Base version is invalid: {firstConfig.BaseVersion} (path: {versionConfigPath.FullName})");
+                }
+            }
+
+            foreach (var historyEntry in historyEntries.Skip(1))
+            {
+                var config = VersionConfig.FromJson(historyEntry.Content);
+
+                if (config?.BaseVersion is null)
+                {
+                    return (semVersion, entry);
+                }
+
+                if (!SemVersion.TryParse(config.BaseVersion, out var entryVersion) || entryVersion is null)
+                {
+                    return (semVersion, entry);
+                }
+
+                if (semVersion != entryVersion)
+                {
+                    return (semVersion, entry);
+                }
+
+                semVersion = entryVersion;
+                entry = historyEntry;
+            }
+
+            return (semVersion, entry);
         }
 
         public AbsoluteFilePath Bump(AbsoluteDirectoryPath versionRootPath)

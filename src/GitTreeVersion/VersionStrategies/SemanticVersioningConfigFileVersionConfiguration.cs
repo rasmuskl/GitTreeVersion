@@ -5,10 +5,10 @@ namespace GitTreeVersion.VersionStrategies
 {
     public class SemanticVersioningConfigFileVersionConfiguration : IVersionConfiguration
     {
-        public SemanticVersioningConfigFileVersionConfiguration(AbsoluteDirectoryPath versionRootPath, VersionConfig versionConfig)
+        public SemanticVersioningConfigFileVersionConfiguration(AbsoluteDirectoryPath repositoryDirectoryPath, AbsoluteDirectoryPath versionRootPath, VersionConfig versionConfig)
         {
-            Major = new VersionConfigVersionStrategy(versionRootPath, versionConfig, VersionType.Major);
-            Minor = new VersionConfigVersionStrategy(versionRootPath, versionConfig, VersionType.Minor);
+            Major = new VersionConfigVersionStrategy(repositoryDirectoryPath, versionRootPath, versionConfig, VersionType.Major);
+            Minor = new VersionConfigVersionStrategy(repositoryDirectoryPath, versionRootPath, versionConfig, VersionType.Minor);
         }
 
         public IVersionStrategy Major { get; }

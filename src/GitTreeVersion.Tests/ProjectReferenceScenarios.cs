@@ -22,7 +22,7 @@ namespace GitTreeVersion.Tests
             var versionGraph = ContextResolver.GetVersionGraph(repositoryPath);
 
             var version = new VersionCalculator().GetVersion(versionGraph, project2Path.Parent);
-            version.Should().Be(new SemVersion(0, 0, 2));
+            version.Should().Be(new SemVersion(0, 0, 3));
         }
 
         [Test]

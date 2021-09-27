@@ -15,7 +15,7 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var bumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var bumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, bumpFile);
 
             var version = CalculateVersion(repositoryPath);
@@ -29,7 +29,7 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var bumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            var bumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, bumpFile);
 
             var version = CalculateVersion(repositoryPath);
@@ -43,10 +43,10 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var minorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
 
-            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            var majorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
 
             var version = CalculateVersion(repositoryPath);
@@ -60,10 +60,10 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            var majorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
 
-            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var minorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
 
             var version = CalculateVersion(repositoryPath);
@@ -77,10 +77,10 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            var majorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
 
-            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var minorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
 
             File.WriteAllText(majorBumpFile.ToString(), "change");
@@ -97,10 +97,10 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            var majorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
 
-            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var minorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
 
             MoveAndCommitFile(repositoryPath, majorBumpFile, new AbsoluteFilePath(Path.Combine(majorBumpFile.Parent.ToString(), "new-name")));
@@ -116,10 +116,10 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            var majorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile);
 
-            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var minorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
 
             CommitNewFile(repositoryPath);
@@ -139,10 +139,10 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var majorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Major);
+            var majorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Major);
             CommitFile(repositoryPath, majorBumpFile, commitMessage: "bump major version");
 
-            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var minorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile, commitMessage: "bump minor version");
 
             CommitNewFile(repositoryPath);
@@ -164,7 +164,7 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var minorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
 
             CommitNewFile(repositoryPath);
@@ -183,7 +183,7 @@ namespace GitTreeVersion.Tests
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
 
-            var minorBumpFile = new Bumper().Bump(repositoryPath, VersionType.Minor);
+            var minorBumpFile = new Bumper().Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
             CommitFile(repositoryPath, minorBumpFile);
 
             CommitNewFile(repositoryPath);
