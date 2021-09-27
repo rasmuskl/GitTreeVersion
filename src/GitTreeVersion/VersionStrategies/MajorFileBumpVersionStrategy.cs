@@ -13,7 +13,7 @@ namespace GitTreeVersion.VersionStrategies
         {
             var gitDirectory = new GitDirectory(context.VersionRootPath);
 
-            var majorVersionFiles = gitDirectory.GitFindFiles(new[] { ":(glob).version/major/*" });
+            var majorVersionFiles = gitDirectory.GitFindFiles(new[] { ":(glob)**/.version/major/*" });
 
             foreach (var file in majorVersionFiles)
             {
@@ -22,7 +22,7 @@ namespace GitTreeVersion.VersionStrategies
 
             if (majorVersionFiles.Any())
             {
-                string[] majorVersionCommits = gitDirectory.GitCommits(null, new[] { ":(glob).version/major/*" }, diffFilter: "A");
+                string[] majorVersionCommits = gitDirectory.GitCommits(null, new[] { ":(glob)**/.version/major/*" }, diffFilter: "A");
 
                 foreach (var majorVersionCommit in majorVersionCommits)
                 {
@@ -32,7 +32,7 @@ namespace GitTreeVersion.VersionStrategies
                 range = $"{majorVersionCommits.First()}..";
             }
 
-            return new VersionComponent(majorVersionFiles.Length, range);
+            return new VersionComponent(majorVersionFiles.Select(Path.GetFileName).Distinct().Count(), range);
         }
 
         public AbsoluteFilePath Bump(AbsoluteDirectoryPath versionRootPath)

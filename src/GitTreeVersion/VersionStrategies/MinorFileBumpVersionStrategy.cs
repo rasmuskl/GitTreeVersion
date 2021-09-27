@@ -16,7 +16,7 @@ namespace GitTreeVersion.VersionStrategies
 
             if (range is null)
             {
-                var minorVersionFiles = gitDirectory.GitFindFiles(new[] { ":(glob).version/minor/*" });
+                var minorVersionFiles = gitDirectory.GitFindFiles(new[] { ":(glob)**/.version/minor/*" });
 
                 foreach (var file in minorVersionFiles)
                 {
@@ -25,7 +25,7 @@ namespace GitTreeVersion.VersionStrategies
 
                 if (minorVersionFiles.Any())
                 {
-                    minor = minorVersionFiles.Length;
+                    minor = minorVersionFiles.Select(Path.GetFileName).Distinct().Count();
                     var minorVersionCommits = gitDirectory.GitCommits(null, new[] { ":(glob).version/minor/*" },
                         diffFilter: "A");
 
@@ -42,14 +42,14 @@ namespace GitTreeVersion.VersionStrategies
             }
             else
             {
-                var changedMinorFiles = gitDirectory.GitDiffFileNames(range, ":(glob).version/minor/*");
+                var changedMinorFiles = gitDirectory.GitDiffFileNames(range, ":(glob)**/.version/minor/*");
 
                 foreach (var file in changedMinorFiles)
                 {
                     Log.Debug($"Minor version file: {file}");
                 }
 
-                minor = changedMinorFiles.Length;
+                minor = changedMinorFiles.Select(Path.GetFileName).Count();
 
                 var minorVersionCommits = gitDirectory.GitCommits(range, changedMinorFiles.ToArray(), diffFilter: "A");
 

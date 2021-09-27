@@ -8,7 +8,7 @@ namespace GitTreeVersion.Tests
     public class SemanticVersioningScenarios : GitTestBase
     {
         [Test]
-        public void SemanticVersion_SingleConfigCommit()
+        public void SingleConfigCommit()
         {
             var repositoryPath = CreateGitRepository();
 
@@ -20,7 +20,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void SemanticVersion_NoBaseVersionSet()
+        public void NoBaseVersionSet()
         {
             var repositoryPath = CreateGitRepository();
 
@@ -39,7 +39,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void SemanticVersion_SingleCommitAfterConfig()
+        public void SingleCommitAfterConfig()
         {
             var repositoryPath = CreateGitRepository();
 
@@ -57,7 +57,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void SemanticVersion_CurrentVersionInvalid()
+        public void CurrentVersionInvalid()
         {
             var repositoryPath = CreateGitRepository();
 
@@ -75,7 +75,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void SemanticVersion_OldVersionInvalid()
+        public void OldVersionInvalid()
         {
             var repositoryPath = CreateGitRepository();
 
@@ -96,7 +96,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void SemanticVersion_ChangeConfigButNotVersionAfterConfig()
+        public void ChangeConfigButNotVersionAfterConfig()
         {
             var repositoryPath = CreateGitRepository();
 

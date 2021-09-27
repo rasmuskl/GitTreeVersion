@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using FluentAssertions;
 using GitTreeVersion.Context;
+using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 using NUnit.Framework;
 using Semver;
@@ -10,7 +11,7 @@ namespace GitTreeVersion.Tests
     public class FileBasedVersioningScenarios : GitTestBase
     {
         [Test]
-        public void FileBasedVersioning_MinorVersion()
+        public void MinorVersion()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -24,7 +25,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void FileBasedVersioning_MajorVersion()
+        public void MajorVersion()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -38,7 +39,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void FileBasedVersioning_MinorThenMajorVersion()
+        public void MinorThenMajorVersion()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -72,7 +73,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void FileBasedVersioning_MajorThenMinorThenChangeMajor()
+        public void MajorThenMinorThenChangeMajor()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -92,7 +93,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void FileBasedVersioning_MajorThenMinorThenMoveMajor()
+        public void MajorThenMinorThenMoveMajor()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -111,7 +112,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void FileBasedVersioning_MajorThenMinorThenTCommitThenChangeMinor()
+        public void MajorThenMinorThenTCommitThenChangeMinor()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -134,7 +135,7 @@ namespace GitTreeVersion.Tests
 
         [Test]
         [Ignore("Should work but does not yet - see comments inside")]
-        public void FileBasedVersioning_MajorThenMinorThenTCommitThenMoveMinor()
+        public void MajorThenMinorThenTCommitThenMoveMinor()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -159,7 +160,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void FileBasedVersioning_MinorThenCommitThenChangeMinor()
+        public void MinorThenCommitThenChangeMinor()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -178,7 +179,7 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
-        public void FileBasedVersioning_MinorThenChangeThenMoveMinor()
+        public void MinorThenChangeThenMoveMinor()
         {
             var repositoryPath = CreateGitRepository();
             WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
@@ -194,5 +195,55 @@ namespace GitTreeVersion.Tests
 
             version.Should().Be(new SemVersion(0, 1, 2));
         }
+
+        [Test]
+        public void MultipleBumpsInNestedRoots_TwoBumps()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var nestedRootPath = repositoryPath.CombineToDirectory("nestedroot");
+
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
+            WriteVersionConfig(nestedRootPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
+
+            var bumper = new Bumper();
+            bumper.Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
+            bumper.Bump(ContextResolver.GetVersionGraph(repositoryPath), nestedRootPath, VersionType.Minor);
+
+            var gitDirectory = new GitDirectory(repositoryPath);
+            gitDirectory.RunGit("add", "--all");
+            gitDirectory.RunGit("commit", "--all", "--message", "bump");
+
+            var version = CalculateVersion(repositoryPath);
+
+            version.Should().Be(new SemVersion(0, 2, 0));
+        }
+
+        [Test]
+        public void MultipleBumpsSameNameInNestedRoots_OneBump()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var nestedRootPath = repositoryPath.CombineToDirectory("nestedroot");
+
+            WriteVersionConfig(repositoryPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
+            WriteVersionConfig(nestedRootPath, new VersionConfig { Preset = VersionPreset.SemanticVersionFileBased });
+
+            var bumper = new Bumper();
+            var bumpFile1 = bumper.Bump(ContextResolver.GetVersionGraph(repositoryPath), repositoryPath, VersionType.Minor);
+            var bumpFile2 = bumper.Bump(ContextResolver.GetVersionGraph(repositoryPath), nestedRootPath, VersionType.Minor);
+
+            File.Copy(bumpFile1.FullName, bumpFile2.Parent.CombineToFile(bumpFile1.FileName).FullName);
+            File.Delete(bumpFile2.FullName);
+
+            var gitDirectory = new GitDirectory(repositoryPath);
+            gitDirectory.RunGit("add", "--all");
+            gitDirectory.RunGit("commit", "--all", "--message", "bump");
+
+            var version = CalculateVersion(repositoryPath);
+
+            version.Should().Be(new SemVersion(0, 1, 0));
+        }
+
     }
 }
