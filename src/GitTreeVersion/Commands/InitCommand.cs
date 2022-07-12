@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Text.Json;
 using GitTreeVersion.Context;
@@ -39,11 +40,34 @@ namespace GitTreeVersion.Commands
                 return;
             }
 
-            var presetChoice = AnsiConsole.Prompt(new SelectionPrompt<string>()
-                .Title("Which [lime]version preset[/] do you want to use?")
-                .AddChoices(Enum.GetNames<VersionPreset>()));
+            string? presetChoice = null;
 
-            var versionPreset = Enum.Parse<VersionPreset>(presetChoice);
+            if (Console.IsInputRedirected)
+            {
+                // Git bash
+                while (!Enum.TryParse<VersionPreset>(presetChoice, true, out _))
+                {
+                    Console.WriteLine("Which version preset do you want to use?");
+
+                    foreach (var name in Enum.GetNames<VersionPreset>())
+                    {
+                        Console.WriteLine($" - {name}");
+                    }
+
+                    Console.WriteLine();
+                    Console.Write("> ");
+
+                    presetChoice = Console.ReadLine();
+                }
+            }
+            else
+            {
+                presetChoice = AnsiConsole.Prompt(new SelectionPrompt<string>()
+                    .Title("Which [lime]version preset[/] do you want to use?")
+                    .AddChoices(Enum.GetNames<VersionPreset>()));
+            }
+
+            var versionPreset = Enum.Parse<VersionPreset>(presetChoice, true);
 
             AnsiConsole.MarkupLine($"Version preset: [lime]{versionPreset}[/]");
 
@@ -53,12 +77,30 @@ namespace GitTreeVersion.Commands
 
             if (versionPreset == VersionPreset.SemanticVersion)
             {
-                var baseVersionPrompt = new TextPrompt<string>("What is the base version?")
-                    .Validate(s => SemVersion.TryParse(s, out _));
+                SemVersion? baseVersion = null;
 
-                var baseVersionString = AnsiConsole.Prompt(baseVersionPrompt);
-                var baseVersion = SemVersion.Parse(baseVersionString)
-                    .Change(prerelease: string.Empty);
+                if (Console.IsInputRedirected)
+                {
+                    // Git bash
+                    while (baseVersion is null)
+                    {
+                        Console.WriteLine("What is the base version?");
+                        Console.Write("> ");
+
+                        var baseVersionString = Console.ReadLine();
+
+                        SemVersion.TryParse(baseVersionString, SemVersionStyles.Any, out baseVersion);
+                    }
+                }
+                else
+                {
+                    var baseVersionPrompt = new TextPrompt<string>("What is the base version?")
+                        .Validate(s => SemVersion.TryParse(s, out _));
+
+                    var baseVersionString = AnsiConsole.Prompt(baseVersionPrompt);
+                    baseVersion = SemVersion.Parse(baseVersionString)
+                        .Change(prerelease: string.Empty);
+                }
 
                 versionConfig.BaseVersion = baseVersion.ToString();
                 AnsiConsole.MarkupLine($"Version preset: [lime]{baseVersion}[/]");
