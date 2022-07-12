@@ -154,6 +154,29 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
+        public void NoGitFileHistory()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            var versionConfigs = new[]
+            {
+                new VersionConfig { Preset = VersionPreset.SemanticVersion, BaseVersion = "1.0.0" },
+            };
+
+            foreach (var versionConfig in versionConfigs)
+            {
+                WriteVersionConfig(repositoryPath, versionConfig);
+            }
+
+            var filePath = Path.Combine(repositoryPath.ToString(), ContextResolver.VersionConfigFileName);
+
+            var gitDirectory = new GitDirectory(repositoryPath);
+            var commitContents = gitDirectory.FileCommitHistory(filePath);
+
+            commitContents.Length.Should().Be(0);
+        }
+
+        [Test]
         public void GitFileHistory()
         {
             var repositoryPath = CreateGitRepository();

@@ -244,6 +244,11 @@ namespace GitTreeVersion.Git
         {
             var commits = GitCommits(null, new[] { filePath });
 
+            if (commits.Length == 0)
+            {
+                return Array.Empty<FileCommitContent>();
+            }
+
             var args = new List<string>();
 
             var marker = Guid.NewGuid().ToString();

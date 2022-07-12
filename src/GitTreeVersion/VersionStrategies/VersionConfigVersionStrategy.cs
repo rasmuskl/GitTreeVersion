@@ -35,6 +35,12 @@ namespace GitTreeVersion.VersionStrategies
                 var gitDirectory = new GitDirectory(_repositoryRootPath);
 
                 var historyEntries = gitDirectory.FileCommitHistory(versionConfigPath.FullName);
+
+                if (historyEntries.Length == 0)
+                {
+                    throw new UserException($"Version file was never committed. (path: {versionConfigPath.FullName})");
+                }
+
                 var (v, e) = GetCurrentVersionIntroduced(versionConfigPath, historyEntries);
                 version = v;
 
