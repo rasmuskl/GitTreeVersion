@@ -42,7 +42,7 @@ namespace GitTreeVersion.Tests
             var versionGraph = ContextResolver.GetVersionGraph(repositoryPath);
 
             var relevantDeployablesForVersionRoot = versionGraph.GetRelevantDeployablesForVersionRoot(project3Path.Parent);
-            relevantDeployablesForVersionRoot.Should().BeEquivalentTo(project1Path, project3Path);
+            relevantDeployablesForVersionRoot.Should().BeEquivalentTo(new [] { project1Path, project3Path });
         }
     }
 }

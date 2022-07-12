@@ -5,6 +5,6 @@ namespace GitTreeVersion
 {
     public static class JsonOptions
     {
-        public static readonly JsonSerializerOptions DefaultOptions = new() { WriteIndented = true, IgnoreNullValues = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() } };
+        public static readonly JsonSerializerOptions DefaultOptions = new() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() } };
     }
 }
