@@ -23,11 +23,11 @@ namespace GitTreeVersion.Commands
             AddArgument(new Argument<string?>("path", () => "."));
         }
 
-        private void Execute(bool apply, bool debug, bool setBuildNumber, bool applySkipBackups, bool skipSolutionInfo, string? path)
+        private void Execute(bool apply, bool debug, bool setBuildNumber, bool skipBackups, bool skipSolutionInfo, string? path)
         {
             Log.IsDebug = debug;
-            var applyBackupChangedFiles = !applySkipBackups;
-            var skipSolutionInfoFiles = !applySkipBackups;
+            var applyBackupChangedFiles = !skipBackups;
+            var skipSolutionInfoFiles = skipSolutionInfo;
 
             if (path is not null)
             {
