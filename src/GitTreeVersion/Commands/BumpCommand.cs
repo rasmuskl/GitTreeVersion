@@ -9,12 +9,12 @@ namespace GitTreeVersion.Commands
 {
     public class BumpCommand : Command
     {
-        public BumpCommand() : base("bump", "Bump versions")
+        public BumpCommand() : base("bump", "Bump deployable versions")
         {
             Handler = CommandHandler.Create<VersionTypeOptions, bool, string?>(Execute);
 
-            AddArgument(new Argument<VersionTypeOptions>("type"));
-            AddArgument(new Argument<string?>("path", () => null));
+            AddArgument(new Argument<VersionTypeOptions>("type", "Type of version increment"));
+            AddArgument(new Argument<string?>("path", () => "."));
         }
 
         private void Execute(VersionTypeOptions type, bool debug, string? path)
@@ -39,13 +39,13 @@ namespace GitTreeVersion.Commands
 
         private enum VersionTypeOptions
         {
-            // ReSharper disable once InconsistentNaming
+            // ReSharper disable once InconsistentNaming, UnusedMember.Local
             major = VersionType.Major,
 
-            // ReSharper disable once InconsistentNaming
+            // ReSharper disable once InconsistentNaming, UnusedMember.Local
             minor = VersionType.Minor,
 
-            // ReSharper disable once InconsistentNaming
+            // ReSharper disable once InconsistentNaming, UnusedMember.Local
             patch = VersionType.Patch,
         }
     }

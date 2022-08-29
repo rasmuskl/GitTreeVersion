@@ -4,6 +4,7 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using GitTreeVersion.Context;
+using GitTreeVersion.Deployables;
 using GitTreeVersion.Paths;
 using Spectre.Console;
 
@@ -13,16 +14,20 @@ namespace GitTreeVersion.Commands
     {
         public VersionCommand() : base("version", "Calculate versions for closest version root")
         {
-            Handler = CommandHandler.Create<bool, bool, bool, string?>(Execute);
+            Handler = CommandHandler.Create<bool, bool, bool, bool, bool, string?>(Execute);
 
-            AddOption(new Option<bool>("--apply"));
-            AddOption(new Option<bool>("--set-build-number"));
-            AddArgument(new Argument<string?>("path", () => null));
+            AddOption(new Option<bool>("--apply", "Apply calculated version to project files"));
+            AddOption(new Option<bool>("--skip-backups", "Skip backups of projects when applying versions"));
+            AddOption(new Option<bool>("--skip-solution-info", "Skip SolutionInfo.cs references in .NET projects when applying versions"));
+            AddOption(new Option<bool>("--set-build-number", "Set version in CI environment"));
+            AddArgument(new Argument<string?>("path", () => "."));
         }
 
-        private void Execute(bool apply, bool debug, bool setBuildNumber, string? path)
+        private void Execute(bool apply, bool debug, bool setBuildNumber, bool applySkipBackups, bool skipSolutionInfo, string? path)
         {
             Log.IsDebug = debug;
+            var applyBackupChangedFiles = !applySkipBackups;
+            var skipSolutionInfoFiles = !applySkipBackups;
 
             if (path is not null)
             {
@@ -64,7 +69,7 @@ namespace GitTreeVersion.Commands
 
                     if (versionGraph.Deployables.TryGetValue(deployablePath, out var deployable))
                     {
-                        deployable.ApplyVersion(deployableVersion);
+                        deployable.ApplyVersion(deployableVersion, new ApplyOptions(applyBackupChangedFiles, skipSolutionInfoFiles));
                     }
                     else
                     {

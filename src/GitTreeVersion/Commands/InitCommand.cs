@@ -17,7 +17,7 @@ namespace GitTreeVersion.Commands
         {
             Handler = CommandHandler.Create<bool, string?>(Execute);
 
-            AddArgument(new Argument<string?>("path", () => null));
+            AddArgument(new Argument<string?>("path", () => "."));
         }
 
         private void Execute(bool debug, string? path)

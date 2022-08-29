@@ -52,7 +52,7 @@ namespace GitTreeVersion.Deployables
                     return new DotNetSdkStyleProject(filePath, referencedDependencies.ToArray());
                 }
 
-                return new DotNetClassicProject(filePath, referencedDependencies.ToArray());
+                return new DotNetClassicProject(filePath, referencedDependencies.ToArray(), document);
             }
 
             return null;

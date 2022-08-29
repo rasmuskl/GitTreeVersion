@@ -15,7 +15,7 @@ namespace GitTreeVersion
         public static async Task<int> Main(string[] args)
         {
             var rootCommand = new RootCommand();
-            rootCommand.AddGlobalOption(new Option<bool>("--debug"));
+            rootCommand.AddGlobalOption(new Option<bool>("--debug", "Output debug information"));
 
             rootCommand.AddCommand(new InitCommand());
             rootCommand.AddCommand(new VersionCommand());

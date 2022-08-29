@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -6,12 +7,29 @@ namespace GitTreeVersion.Deployables.DotNet
 {
     public class AttributeAugmenter
     {
+        public StringAttribute[] DetectStringAttributes(string contents, StringAttribute[] targetAttributes)
+        {
+            var matches = new List<StringAttribute>();
+
+            foreach (var targetAttribute in targetAttributes)
+            {
+                var regex = GetAttributeRegex(targetAttribute);
+
+                if (regex.IsMatch(contents))
+                {
+                    matches.Add(targetAttribute);
+                }
+            }
+
+            return matches.ToArray();
+        }
+
         public string EnsureStringAttributes(string contents, StringAttribute[] targetAttributes)
         {
             foreach (var targetAttribute in targetAttributes)
             {
+                var regex = GetAttributeRegex(targetAttribute);
                 var targetString = $"[assembly: {targetAttribute.AttributeType.FullName}(\"{targetAttribute.Value}\")]{Environment.NewLine}";
-                var regex = new Regex($@"^\s*\[\s*assembly\s*:\s*{AttributeTypeToPattern(targetAttribute.AttributeType.FullName!)}\s*\(\s*""[^""]+""\s*\)\s*\]\s*", RegexOptions.Multiline);
 
                 if (regex.IsMatch(contents))
                 {
@@ -24,6 +42,11 @@ namespace GitTreeVersion.Deployables.DotNet
             }
 
             return contents;
+        }
+
+        private Regex GetAttributeRegex(StringAttribute targetAttribute)
+        {
+            return new Regex($@"^\s*\[\s*assembly\s*:\s*{AttributeTypeToPattern(targetAttribute.AttributeType.FullName!)}\s*\(\s*""[^""]+""\s*\)\s*\]\s*", RegexOptions.Multiline);
         }
 
         private string AttributeTypeToPattern(string typeName)

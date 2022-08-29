@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -18,7 +19,7 @@ namespace GitTreeVersion.Deployables.DotNet
         public AbsoluteFilePath FilePath { get; }
         public AbsoluteFilePath[] ReferencedDeployablePaths { get; }
 
-        public void ApplyVersion(SemVersion version)
+        public void ApplyVersion(SemVersion version, ApplyOptions applyOptions)
         {
             var document = XDocument.Load(FilePath.FullName, LoadOptions.PreserveWhitespace);
 
@@ -29,8 +30,7 @@ namespace GitTreeVersion.Deployables.DotNet
             if (versionElement is not null)
             {
                 versionElement.SetValue(version.ToString());
-                using var xmlWriter = XmlWriter.Create(FilePath.FullName, writerSettings);
-                document.Save(xmlWriter);
+                SaveChanges(document, writerSettings, applyOptions);
                 return;
             }
 
@@ -39,8 +39,7 @@ namespace GitTreeVersion.Deployables.DotNet
             if (propertyGroupElement is not null)
             {
                 propertyGroupElement.Add(new XElement("Version", version.ToString()));
-                using var xmlWriter = XmlWriter.Create(FilePath.FullName, writerSettings);
-                document.Save(xmlWriter);
+                SaveChanges(document, writerSettings, applyOptions);
                 return;
             }
 
@@ -49,12 +48,22 @@ namespace GitTreeVersion.Deployables.DotNet
             if (projectElement is not null)
             {
                 projectElement.Add(new XElement("PropertyGroup", new XElement("Version", version.ToString())));
-                using var xmlWriter = XmlWriter.Create(FilePath.FullName, writerSettings);
-                document.Save(xmlWriter);
+                SaveChanges(document, writerSettings, applyOptions);
                 return;
             }
 
             Log.Warning($"Unable to apply version to: {FilePath.FullName}");
+        }
+
+        private void SaveChanges(XDocument document, XmlWriterSettings writerSettings, ApplyOptions applyOptions)
+        {
+            if (applyOptions.BackupChangedFiles)
+            {
+                File.Copy(FilePath.FullName, $"{FilePath.FullName}.bak", true);
+            }
+
+            using var xmlWriter = XmlWriter.Create(FilePath.FullName, writerSettings);
+            document.Save(xmlWriter);
         }
     }
 }

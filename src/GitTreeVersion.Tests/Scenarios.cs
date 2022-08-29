@@ -251,7 +251,7 @@ namespace GitTreeVersion.Tests
             deployable.Should().NotBeNull();
             deployable.Should().BeOfType<HelmChart>();
 
-            deployable!.ApplyVersion(new SemVersion(1));
+            deployable!.ApplyVersion(new SemVersion(1), new ApplyOptions(true, false));
             var result = File.ReadAllText(chartPath);
 
             result.Should().Contain("version: 1.0.0");

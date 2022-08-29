@@ -18,7 +18,7 @@ namespace GitTreeVersion.Deployables.Helm
         public AbsoluteFilePath FilePath { get; }
         public AbsoluteFilePath[] ReferencedDeployablePaths { get; } = Array.Empty<AbsoluteFilePath>();
 
-        public void ApplyVersion(SemVersion version)
+        public void ApplyVersion(SemVersion version, ApplyOptions applyOptions)
         {
             var yamlStream = new YamlStream();
             var input = new StringReader(File.ReadAllText(FilePath.FullName));
@@ -42,7 +42,10 @@ namespace GitTreeVersion.Deployables.Helm
                 documentRootNode.Children["version"] = version.ToString();
             }
 
-            File.Copy(FilePath.FullName, $"{FilePath.FullName}.bak", true);
+            if (applyOptions.BackupChangedFiles)
+            {
+                File.Copy(FilePath.FullName, $"{FilePath.FullName}.bak", true);
+            }
             File.WriteAllText(FilePath.FullName, new Serializer().Serialize(document.RootNode));
         }
     }

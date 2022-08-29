@@ -18,7 +18,7 @@ namespace GitTreeVersion.Deployables.Npm
         public AbsoluteFilePath FilePath { get; }
         public AbsoluteFilePath[] ReferencedDeployablePaths { get; }
 
-        public void ApplyVersion(SemVersion version)
+        public void ApplyVersion(SemVersion version, ApplyOptions applyOptions)
         {
             var json = File.ReadAllText(FilePath.FullName);
             var versionWritten = false;
@@ -56,6 +56,12 @@ namespace GitTreeVersion.Deployables.Npm
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             var resultJson = Encoding.UTF8.GetString(memoryStream.ToArray());
+
+            if (applyOptions.BackupChangedFiles)
+            {
+                File.Copy(FilePath.FullName, $"{FilePath.FullName}.bak", true);
+            }
+
             File.WriteAllText(FilePath.FullName, resultJson);
         }
     }

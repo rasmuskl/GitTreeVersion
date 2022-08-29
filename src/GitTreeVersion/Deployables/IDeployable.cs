@@ -7,6 +7,6 @@ namespace GitTreeVersion.Deployables
     {
         AbsoluteFilePath FilePath { get; }
         AbsoluteFilePath[] ReferencedDeployablePaths { get; }
-        void ApplyVersion(SemVersion version);
+        void ApplyVersion(SemVersion version, ApplyOptions applyOptions);
     }
 }
