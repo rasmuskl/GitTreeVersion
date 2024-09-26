@@ -17,11 +17,11 @@ internal class ListDeployablesCommand : Command
     {
         Handler = CommandHandler.Create<bool, string?>(Execute);
 
-        AddOption(new Option<bool>("--only-changed", "Only list deployables that were impacted"));
+        AddOption(new Option<bool>("--only-impacted", "Only list deployables that were impacted"));
         AddArgument(new Argument<string?>("path", () => "."));
     }
 
-    private void Execute(bool onlyChanged, string? path)
+    private void Execute(bool onlyImpacted, string? path)
     {
         if (path is not null)
         {
@@ -33,9 +33,9 @@ internal class ListDeployablesCommand : Command
         var versionGraph = ContextResolver.GetVersionGraph(new AbsoluteDirectoryPath(path));
         var deployables = versionGraph.Deployables.Values.AsEnumerable();
 
-        if (onlyChanged)
+        if (onlyImpacted)
         {
-            deployables = FilterChangedDeployables(deployables, versionGraph, path);
+            deployables = FilterImpactedDeployables(deployables, versionGraph, path);
         }
 
         foreach (var deployable in deployables)
@@ -44,7 +44,7 @@ internal class ListDeployablesCommand : Command
         }
     }
 
-    private static IEnumerable<IDeployable> FilterChangedDeployables(IEnumerable<IDeployable> deployables, VersionGraph versionGraph, string path)
+    private static IEnumerable<IDeployable> FilterImpactedDeployables(IEnumerable<IDeployable> deployables, VersionGraph versionGraph, string path)
     {
         var gitDirectory = new GitDirectory(new AbsoluteDirectoryPath(path));
         var(parent1, parent2) = gitDirectory.GetMergeParentCommitHashes();
