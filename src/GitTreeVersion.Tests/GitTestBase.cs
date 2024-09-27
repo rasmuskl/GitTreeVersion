@@ -78,7 +78,7 @@ namespace GitTreeVersion.Tests
             return branchName;
         }
 
-        public void CommitNewFile(AbsoluteDirectoryPath repositoryPath, DateTimeOffset? commitTime = null, string? commitMessage = null)
+        public AbsoluteFilePath CommitNewFile(AbsoluteDirectoryPath repositoryPath, DateTimeOffset? commitTime = null, string? commitMessage = null)
         {
             var fileName = Path.Combine(repositoryPath.ToString(), $"file-{Guid.NewGuid()}");
             File.WriteAllText(fileName, Guid.NewGuid().ToString());
@@ -91,6 +91,8 @@ namespace GitTreeVersion.Tests
 
             var signature = new Signature(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), commitTime.GetValueOrDefault(DateTimeOffset.UtcNow));
             repository.Commit(commitMessage ?? $"add new file {relativeFilePath}", signature, signature);
+
+            return new AbsoluteFilePath(fileName);
         }
 
         public void CommitFile(AbsoluteDirectoryPath repositoryPath, AbsoluteFilePath filePath, DateTimeOffset? commitTime = null, string? commitMessage = null)

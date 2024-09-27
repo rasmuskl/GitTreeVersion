@@ -98,6 +98,48 @@ namespace GitTreeVersion.Tests
         }
 
         [Test]
+        public void GetMergeParentCommitHashes()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            CommitNewFile(repositoryPath);
+
+            var branchName = CreateBranch(repositoryPath);
+
+            CommitNewFile(repositoryPath);
+
+            MergeBranchToMaster(repositoryPath, branchName);
+
+            var gitDirectory = new GitDirectory(repositoryPath);
+
+            var (parent1, parent2) = gitDirectory.GetMergeParentCommitHashes();
+
+            parent1.Should().NotBeNullOrWhiteSpace();
+            parent2.Should().NotBeNullOrWhiteSpace();
+        }
+
+        [Test]
+        public void GitDiffFileNames()
+        {
+            var repositoryPath = CreateGitRepository();
+
+            CommitNewFile(repositoryPath);
+
+            var branchName = CreateBranch(repositoryPath);
+
+            var newFilePath = CommitNewFile(repositoryPath);
+
+            MergeBranchToMaster(repositoryPath, branchName);
+
+            var gitDirectory = new GitDirectory(repositoryPath);
+
+            var (parent1, parent2) = gitDirectory.GetMergeParentCommitHashes();
+            var gitDiffFileNames = gitDirectory.GitDiffFileNames(parent1, parent2, null);
+
+            gitDiffFileNames.Should().ContainSingle(x => newFilePath.FileName.EndsWith(x));
+        }
+
+        [Test]
         public void NonDefaultBranch()
         {
             var repositoryPath = CreateGitRepository();
