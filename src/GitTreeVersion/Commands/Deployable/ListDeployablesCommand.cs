@@ -11,7 +11,7 @@ using GitTreeVersion.Paths;
 
 namespace GitTreeVersion.Commands.Deployable;
 
-internal class ListDeployablesCommand : Command
+public class ListDeployablesCommand : Command
 {
     public ListDeployablesCommand() : base("ls", "List deployables")
     {
@@ -49,7 +49,7 @@ internal class ListDeployablesCommand : Command
         var gitDirectory = new GitDirectory(new AbsoluteDirectoryPath(path));
         var(parent1, parent2) = gitDirectory.GetMergeParentCommitHashes();
         var changedFiles = gitDirectory.GitDiffFileNames(parent1, parent2, null)
-            .Select(Path.GetFullPath)
+            .Select(f => Path.Combine(path, f))
             .Select(f => new AbsoluteFilePath(f))
             .ToArray();
 
