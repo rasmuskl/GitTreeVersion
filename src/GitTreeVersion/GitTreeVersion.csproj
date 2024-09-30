@@ -8,6 +8,7 @@
 
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>gtv</ToolCommandName>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup>

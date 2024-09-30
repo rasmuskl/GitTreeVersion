@@ -1,7 +1,6 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.ComponentModel.Design;
 using System.IO;
 using System.Text.Json;
 using GitTreeVersion.Context;

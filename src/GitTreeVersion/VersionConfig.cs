@@ -46,6 +46,5 @@ namespace GitTreeVersion
     {
         SemanticVersion,
         CalendarVersion,
-        SemanticVersionFileBased,
     }
 }

@@ -44,11 +44,6 @@ namespace GitTreeVersion
                 versionConfiguration = new CalendarVersioningVersionConfiguration();
             }
 
-            if (graph.VersionRootConfigs[versionRootPath].Preset == VersionPreset.SemanticVersionFileBased)
-            {
-                versionConfiguration = new SemanticVersioningFileBasedVersionConfiguration();
-            }
-
             return versionConfiguration;
         }
 
