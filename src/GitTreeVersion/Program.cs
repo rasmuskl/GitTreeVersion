@@ -6,6 +6,7 @@ using System.CommandLine.Parsing;
 using System.Reflection;
 using System.Threading.Tasks;
 using GitTreeVersion.Commands;
+using GitTreeVersion.Commands.Deployable;
 using Spectre.Console;
 
 namespace GitTreeVersion
@@ -23,6 +24,7 @@ namespace GitTreeVersion
             rootCommand.AddCommand(new AnalyzeCommand());
             rootCommand.AddCommand(new TreeCommand());
             rootCommand.AddCommand(new BumpCommand());
+            rootCommand.AddCommand(new DeployableCommand());
 
             var commandLineBuilder = new CommandLineBuilder(rootCommand)
                 .UseVersionOption()

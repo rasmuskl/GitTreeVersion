@@ -222,13 +222,40 @@ namespace GitTreeVersion.Git
             return output.SplitOutput();
         }
 
+        public MergeParentCommitHashes GetMergeParentCommitHashes()
+        {
+            var output = RunGit("rev-list", "--parents", "--max-count=1", "HEAD").Trim();
+
+            var commitShas = output.Split(" ");
+
+            if (commitShas.Length != 3)
+            {
+                throw new InvalidOperationException("Last commit is not a merge commit.");
+            }
+
+            var parent1 = commitShas[1];
+            var parent2 = commitShas[2];
+
+            return new MergeParentCommitHashes(parent1, parent2);
+        }
+
         public string[] GitDiffFileNames(string? range, string? pathSpec)
+        {
+            return GitDiffFileNames(range, null, pathSpec);
+        }
+
+        public string[] GitDiffFileNames(string? rangeStart, string? rangeEnd, string? pathSpec)
         {
             var arguments = new List<string>();
             arguments.Add("diff");
             arguments.Add("--name-only");
 
-            arguments.Add(range ?? "HEAD");
+            arguments.Add(rangeStart ?? "HEAD");
+
+            if (!string.IsNullOrWhiteSpace(rangeEnd))
+            {
+                arguments.Add(rangeEnd);
+            }
 
             if (!string.IsNullOrWhiteSpace(pathSpec))
             {
@@ -335,3 +362,5 @@ namespace GitTreeVersion.Git
         }
     }
 }
+
+public record MergeParentCommitHashes(string Parent1, string Parent2);

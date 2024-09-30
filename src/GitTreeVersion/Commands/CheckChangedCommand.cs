@@ -28,17 +28,7 @@ namespace GitTreeVersion.Commands
             path ??= Environment.CurrentDirectory;
 
             var gitDirectory = new GitDirectory(new AbsoluteDirectoryPath(path));
-            var output = gitDirectory.RunGit("rev-list", "--parents", "--max-count=1", "HEAD").Trim();
-
-            var commitShas = output.Split(" ");
-
-            if (commitShas.Length != 3)
-            {
-                throw new InvalidOperationException("Last commit is not a merge commit.");
-            }
-
-            var parent1 = commitShas[1];
-            var parent2 = commitShas[2];
+            var(parent1, parent2) = gitDirectory.GetMergeParentCommitHashes();
 
             Console.WriteLine($"Found merge commit with parents {parent1} and {parent2}.");
 
@@ -46,7 +36,12 @@ namespace GitTreeVersion.Commands
             Console.WriteLine("Relevant changed files:");
             Console.WriteLine();
 
-            Console.WriteLine(gitDirectory.RunGit("diff", "--name-only", parent1, parent2).Trim());
+            var fileNames = gitDirectory.GitDiffFileNames(parent1, parent2, null);
+
+            foreach (var fileName in fileNames)
+            {
+                Console.WriteLine(fileName);
+            }
         }
     }
 }
