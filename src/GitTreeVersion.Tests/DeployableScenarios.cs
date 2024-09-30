@@ -10,10 +10,10 @@ namespace GitTreeVersion.Tests;
 internal class DeployableScenarios : GitTestBase
 {
     private const string Deployable1Path = "Deployable1";
-    private const string Deployable1FileName = $"{Deployable1Path}\\Deployable1.csproj";
-    private const string Deployable2FileName = "Deployable2\\Deployable2.csproj";
+    private static readonly string Deployable1FileName = Path.Combine(Deployable1Path, "Deployable1.csproj");
+    private static readonly string Deployable2FileName = Path.Combine("Deployable2", "Deployable2.csproj");
     private const string ReferencedDeployablePath = "GitTreeVersion";
-    private const string ReferencedDeployableFileName = $"{ReferencedDeployablePath}\\GitTreeVersion.csproj";
+    private static readonly string ReferencedDeployableFileName = Path.Combine(ReferencedDeployablePath, "GitTreeVersion.csproj");
 
     [Test]
     public async Task ListDeployables_OutputAllDeployablesInRepository()
