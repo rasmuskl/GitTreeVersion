@@ -2,51 +2,51 @@ name: .NET
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.x
-    
-    - name: Restore dependencies
-      run: dotnet restore
-      working-directory: src
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: Version
-      run: dotnet run --project GitTreeVersion -- version --apply
-      working-directory: src
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 9.x
 
-    - name: Build
-      run: dotnet build --no-restore
-      working-directory: src
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: src
 
-    - name: Configure Git for tests
-      run: |
-        git config --global user.email "you@example.com"
-        git config --global user.name "Your Name"
-    
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-      working-directory: src
+      - name: Version
+        run: dotnet run --project GitTreeVersion -- version --apply
+        working-directory: src
 
-    - name: Pack
-      run: dotnet pack --configuration Release
-      working-directory: src
+      - name: Build
+        run: dotnet build --no-restore
+        working-directory: src
 
-    - name: NuGet push
-      env:
-        APIKEY: ${{ secrets.GitTreeVersionNuGetKey }}
-      run: dotnet nuget push GitTreeVersion/bin/Release/GitTreeVersion.*.nupkg --api-key $APIKEY --source https://api.nuget.org/v3/index.json
-      working-directory: src
+      - name: Configure Git for tests
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+        working-directory: src
+
+      - name: Pack
+        run: dotnet pack --configuration Release
+        working-directory: src
+
+      - name: NuGet push
+        env:
+          APIKEY: ${{ secrets.GitTreeVersionNuGetKey }}
+        run: dotnet nuget push GitTreeVersion/bin/Release/GitTreeVersion.*.nupkg --api-key $APIKEY --source https://api.nuget.org/v3/index.json
+        working-directory: src
