@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using GitTreeVersion.Context;
 using GitTreeVersion.Deployables;
+using GitTreeVersion.Formatting;
 using GitTreeVersion.Git;
 using GitTreeVersion.Paths;
 
@@ -15,36 +16,42 @@ public class ListDeployablesCommand : Command
 {
     public ListDeployablesCommand() : base("ls", "List deployables")
     {
-        Handler = CommandHandler.Create<bool, string?>(Execute);
+        Handler = CommandHandler.Create<bool, bool, OutputFormat, string>(Execute);
 
         AddOption(new Option<bool>("--only-impacted", "Only list deployables that were impacted"));
-        AddArgument(new Argument<string?>("path", () => "."));
+        AddOption(new Option<bool>("--output-versions", "Output versions of deployables"));
+        AddOption(new Option<OutputFormat>("--format", () => OutputFormat.Text, "Output format"));
+        AddArgument(new Argument<string>("path", () => "."));
     }
 
-    private void Execute(bool onlyImpacted, string? path)
+    private void Execute(
+        bool onlyImpacted,
+        bool outputVersions,
+        OutputFormat format,
+        string path)
     {
-        if (path is not null)
-        {
-            path = Path.GetFullPath(path);
-        }
-
-        path ??= Environment.CurrentDirectory;
+        path = Path.GetFullPath(path);
 
         var versionGraph = ContextResolver.GetVersionGraph(new AbsoluteDirectoryPath(path));
-        var deployables = versionGraph.Deployables.Values.AsEnumerable();
+        var deployableRecords = versionGraph.Deployables.Values
+            .Select(dp => new DeployableRecord(dp));
 
         if (onlyImpacted)
         {
-            deployables = FilterImpactedDeployables(deployables, versionGraph, path);
+            deployableRecords = FilterImpactedDeployables(deployableRecords, versionGraph, path);
         }
 
-        foreach (var deployable in deployables)
+        if (outputVersions)
         {
-            Console.WriteLine(deployable.FilePath.FullName);
+            deployableRecords = SetDeployableVersions(deployableRecords, versionGraph);
         }
+
+        var deployableResult = new DeployableResult(deployableRecords, outputVersions);
+
+        Console.WriteLine(deployableResult.RenderAs(format));
     }
 
-    private static IEnumerable<IDeployable> FilterImpactedDeployables(IEnumerable<IDeployable> deployables, VersionGraph versionGraph, string path)
+    private static IEnumerable<DeployableRecord> FilterImpactedDeployables(IEnumerable<DeployableRecord> deployableRecords, VersionGraph versionGraph, string path)
     {
         var gitDirectory = new GitDirectory(new AbsoluteDirectoryPath(path));
         var(parent1, parent2) = gitDirectory.GetMergeParentCommitHashes();
@@ -53,8 +60,9 @@ public class ListDeployablesCommand : Command
             .Select(f => new AbsoluteFilePath(f))
             .ToArray();
 
-        foreach (var deployable in deployables)
+        foreach (var record in deployableRecords)
         {
+            var (deployable, _) = record;
             var relatedPaths = GetRelatedPaths(deployable, versionGraph);
 
             var isImpacted = changedFiles.Any(changedFile => relatedPaths.Any(changedFile.IsInSubPathOf));
@@ -64,13 +72,13 @@ public class ListDeployablesCommand : Command
                 continue;
             }
 
-            yield return deployable;
+            yield return record;
         }
     }
 
-    private static IEnumerable<AbsoluteDirectoryPath> GetRelatedPaths(IDeployable deployable, VersionGraph versionGraph)
+    private static IEnumerable<AbsoluteDirectoryPath> GetRelatedPaths(IDeployable deployableRecords, VersionGraph versionGraph)
     {
-        var deployableQueue = new Queue<IDeployable>(new[] { deployable });
+        var deployableQueue = new Queue<IDeployable>([deployableRecords]);
         var relatedDeployables = new HashSet<AbsoluteFilePath>();
 
         while (deployableQueue.TryDequeue(out var currentDeployable))
@@ -80,7 +88,7 @@ public class ListDeployablesCommand : Command
                 continue;
             }
 
-            var deployables = deployable.ReferencedDeployablePaths
+            var deployables = deployableRecords.ReferencedDeployablePaths
                 .Except(relatedDeployables)
                 .Select(fp => versionGraph.Deployables[fp]);
 
@@ -92,4 +100,44 @@ public class ListDeployablesCommand : Command
 
         return relatedDeployables.Select(rd => rd.Parent);
     }
+
+    private static IEnumerable<DeployableRecord> SetDeployableVersions(IEnumerable<DeployableRecord> deployableRecords, VersionGraph versionGraph)
+    {
+        var versionCalculator = new VersionCalculator();
+
+        foreach (var deployable in deployableRecords)
+        {
+            var versionRoot = versionGraph.DeployableFileVersionRoots[deployable.Deployable.FilePath];
+            var version = versionCalculator.GetVersion(versionGraph, versionRoot);
+
+            yield return deployable with{ Version = version.ToString() };
+        }
+    }
+
+    private class DeployableResult(IEnumerable<DeployableRecord> deployableRecords, bool outputVersions) : GridResult
+    {
+        protected override IEnumerable<string> GetColumnNames()
+        {
+            yield return "deployableFilePath";
+
+            if (outputVersions)
+            {
+                yield return "version";
+            }
+        }
+
+        protected override IEnumerable<IEnumerable<object>> GetRows()
+        {
+            foreach (var (deployable, version) in deployableRecords)
+            {
+                string[] output = outputVersions
+                    ? [deployable.FilePath.FullName, version ?? string.Empty]
+                    : [deployable.FilePath.FullName];
+
+                yield return output;
+            }
+        }
+    }
+
+    internal record DeployableRecord(IDeployable Deployable, string? Version = null);
 }
