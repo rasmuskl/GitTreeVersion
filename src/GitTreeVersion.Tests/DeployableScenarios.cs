@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using GitTreeVersion.Paths;
@@ -16,7 +18,7 @@ internal class DeployableScenarios : GitTestBase
     private static readonly string ReferencedDeployableFileName = Path.Combine(ReferencedDeployablePath, "GitTreeVersion.csproj");
 
     [Test]
-    public async Task ListDeployables_OutputAllDeployablesInRepository()
+    public async Task ListDeployables_OutputAllDeployablesInRepositoryAsText()
     {
         var repositoryPath = CreateGitRepositoryWithDeployables();
 
@@ -26,6 +28,47 @@ internal class DeployableScenarios : GitTestBase
         deployables.Should().ContainSingle(x => x.EndsWith(Deployable1FileName));
         deployables.Should().ContainSingle(x => x.EndsWith(Deployable2FileName));
         deployables.Should().ContainSingle(x => x.EndsWith(ReferencedDeployableFileName));
+    }
+
+    [Test]
+    public async Task ListDeployables_WithVersionsAndFormatAsText_OutputAllDeployablesInRepositoryAsText()
+    {
+        var repositoryPath = CreateGitRepositoryWithDeployables();
+
+        var commandOutput = await ExecuteCommand("deployable", "ls", "--output-versions", "--format", "text", repositoryPath.ToString());
+        var deployables = commandOutput.Select(x => x.Split(';'))
+                                       .ToArray();
+
+        deployables.Should().HaveCount(3);
+        deployables[0][0].Should().EndWith(Deployable1FileName);
+        deployables[1][0].Should().EndWith(Deployable2FileName);
+        deployables[2][0].Should().EndWith(ReferencedDeployableFileName);
+
+        var expectedVersion = "0.0.3";
+        deployables[0][1].Should().Be(expectedVersion);
+        deployables[1][1].Should().Be(expectedVersion);
+        deployables[2][1].Should().Be(expectedVersion);
+    }
+
+    [Test]
+    public async Task ListDeployables_WithVersionsAndFormatAsJson_OutputAllDeployablesInRepositoryAsJson()
+    {
+        var repositoryPath = CreateGitRepositoryWithDeployables();
+
+        var commandOutput = await ExecuteCommand("deployable", "ls", "--output-versions", "--format", "json", repositoryPath.ToString());
+        var deployablesJson = string.Join("", commandOutput);
+
+        var deployables = JsonSerializer.Deserialize<DeployableResult[]>(deployablesJson, JsonSerializerOptions.Web)!;
+
+        deployables.Should().HaveCount(3);
+        deployables[0].DeployableFilePath.Should().EndWith(Deployable1FileName);
+        deployables[1].DeployableFilePath.Should().EndWith(Deployable2FileName);
+        deployables[2].DeployableFilePath.Should().EndWith(ReferencedDeployableFileName);
+
+        var expectedVersion = "0.0.3";
+        deployables[0].Version.Should().EndWith(expectedVersion);
+        deployables[1].Version.Should().EndWith(expectedVersion);
+        deployables[2].Version.Should().EndWith(expectedVersion);
     }
 
     [Test]
@@ -134,4 +177,7 @@ internal class DeployableScenarios : GitTestBase
             Console.SetError(originalErrorWriter);
         }
     }
+
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private record DeployableResult(string DeployableFilePath, string? Version);
 }
