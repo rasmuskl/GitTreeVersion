@@ -25,11 +25,14 @@ namespace GitTreeVersion.Context
                 throw new UserException("Shallow checkout detected, change to a full checkout.");
             }
 
-            var branchStatus = repositoryGitDirectory.GitCurrentBranch();
+            var detector = buildEnvironmentDetector ?? new BuildEnvironmentDetector();
+            var mainBranchOverride = detector.EnvironmentAccessor.GetEnvironmentVariable("GTV_MAIN_BRANCH");
+
+            var branchStatus = repositoryGitDirectory.GitCurrentBranch(mainBranchOverride);
 
             CurrentBranch = branchStatus.currentRef;
             MainBranch = branchStatus.mainBranch;
-            BuildEnvironment = (buildEnvironmentDetector ?? new BuildEnvironmentDetector()).GetBuildEnvironment();
+            BuildEnvironment = detector.GetBuildEnvironment();
 
             var versionRootPaths = new List<AbsoluteDirectoryPath>();
             var versionRootParents = new Dictionary<AbsoluteDirectoryPath, AbsoluteDirectoryPath?>();

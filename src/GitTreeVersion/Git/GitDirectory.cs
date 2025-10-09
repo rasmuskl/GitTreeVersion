@@ -117,7 +117,7 @@ namespace GitTreeVersion.Git
             return output.SplitOutput();
         }
 
-        public (GitRef? currentRef, GitRef? mainBranch) GitCurrentBranch()
+        public (GitRef? currentRef, GitRef? mainBranch) GitCurrentBranch(string? mainBranchOverride = null)
         {
             var output = RunGit("branch", "--all");
             var lines = output.SplitOutput();
@@ -158,11 +158,25 @@ namespace GitTreeVersion.Git
                 throw new Exception("Current branch not found.");
             }
 
-            var mainBranches = refs.Where(r => MainBranchNames.Contains(r.Name)).ToArray();
+            GitRef[] mainBranches;
 
-            if (mainBranches.Length == 0)
+            if (!string.IsNullOrWhiteSpace(mainBranchOverride))
             {
-                mainBranches = refs.Where(r => MainBranchNames.Contains(r.Name.Split('/').Last())).ToArray();
+                mainBranches = refs.Where(r => r.Name == mainBranchOverride).ToArray();
+
+                if (mainBranches.Length == 0)
+                {
+                    throw new UserException($"Main branch override '{mainBranchOverride}' not found in repository.");
+                }
+            }
+            else
+            {
+                mainBranches = refs.Where(r => MainBranchNames.Contains(r.Name)).ToArray();
+
+                if (mainBranches.Length == 0)
+                {
+                    mainBranches = refs.Where(r => MainBranchNames.Any(name => r.Name == $"remotes/origin/{name}")).ToArray();
+                }
             }
 
             if (mainBranches.Length != 1)

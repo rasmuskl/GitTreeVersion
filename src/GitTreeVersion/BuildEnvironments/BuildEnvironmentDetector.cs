@@ -7,6 +7,8 @@ namespace GitTreeVersion.BuildEnvironments
     {
         private readonly IEnvironmentAccessor _environmentAccessor;
 
+        public IEnvironmentAccessor EnvironmentAccessor => _environmentAccessor;
+
         public BuildEnvironmentDetector(IEnvironmentAccessor? environmentAccessor = null)
         {
             _environmentAccessor = environmentAccessor ?? new DefaultEnvironmentAccessor();
